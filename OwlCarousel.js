@@ -1,2 +1,1711 @@
-!function(a,b,c,d){function e(b,c){this.settings=null,this.options=a.extend({},e.Defaults,c),this.$element=a(b),this.drag=a.extend({},m),this.state=a.extend({},n),this.e=a.extend({},o),this._plugins={},this._supress={},this._current=null,this._speed=null,this._coordinates=[],this._breakpoint=null,this._width=null,this._items=[],this._clones=[],this._mergers=[],this._invalidated={},this._pipe=[],a.each(e.Plugins,a.proxy(function(a,b){this._plugins[a[0].toLowerCase()+a.slice(1)]=new b(this)},this)),a.each(e.Pipe,a.proxy(function(b,c){this._pipe.push({filter:c.filter,run:a.proxy(c.run,this)})},this)),this.setup(),this.initialize()}function f(a){if(a.touches!==d)return{x:a.touches[0].pageX,y:a.touches[0].pageY};if(a.touches===d){if(a.pageX!==d)return{x:a.pageX,y:a.pageY};if(a.pageX===d)return{x:a.clientX,y:a.clientY}}}function g(a){var b,d,e=c.createElement("div"),f=a;for(b in f)if(d=f[b],"undefined"!=typeof e.style[d])return e=null,[d,b];return[!1]}function h(){return g(["transition","WebkitTransition","MozTransition","OTransition"])[1]}function i(){return g(["transform","WebkitTransform","MozTransform","OTransform","msTransform"])[0]}function j(){return g(["perspective","webkitPerspective","MozPerspective","OPerspective","MsPerspective"])[0]}function k(){return"ontouchstart"in b||!!navigator.msMaxTouchPoints}function l(){return b.navigator.msPointerEnabled}var m,n,o;m={start:0,startX:0,startY:0,current:0,currentX:0,currentY:0,offsetX:0,offsetY:0,distance:null,startTime:0,endTime:0,updatedX:0,targetEl:null},n={isTouch:!1,isScrolling:!1,isSwiping:!1,direction:!1,inMotion:!1},o={_onDragStart:null,_onDragMove:null,_onDragEnd:null,_transitionEnd:null,_resizer:null,_responsiveCall:null,_goToLoop:null,_checkVisibile:null},e.Defaults={items:3,loop:!1,center:!1,mouseDrag:!0,touchDrag:!0,pullDrag:!0,freeDrag:!1,margin:0,stagePadding:0,merge:!1,mergeFit:!0,autoWidth:!1,startPosition:0,rtl:!0,smartSpeed:250,fluidSpeed:!1,dragEndSpeed:!1,responsive:{},responsiveRefreshRate:200,responsiveBaseElement:b,responsiveClass:!1,fallbackEasing:"swing",info:!1,nestedItemSelector:!1,itemElement:"div",stageElement:"div",themeClass:"owl-theme",baseClass:"owl-carousel",itemClass:"owl-item",centerClass:"center",activeClass:"active"},e.Width={Default:"default",Inner:"inner",Outer:"outer"},e.Plugins={},e.Pipe=[{filter:["width","items","settings"],run:function(a){a.current=this._items&&this._items[this.relative(this._current)]}},{filter:["items","settings"],run:function(){var a=this._clones,b=this.$stage.children(".cloned");(b.length!==a.length||!this.settings.loop&&a.length>0)&&(this.$stage.children(".cloned").remove(),this._clones=[])}},{filter:["items","settings"],run:function(){var a,b,c=this._clones,d=this._items,e=this.settings.loop?c.length-Math.max(2*this.settings.items,4):0;for(a=0,b=Math.abs(e/2);b>a;a++)e>0?(this.$stage.children().eq(d.length+c.length-1).remove(),c.pop(),this.$stage.children().eq(0).remove(),c.pop()):(c.push(c.length/2),this.$stage.append(d[c[c.length-1]].clone().addClass("cloned")),c.push(d.length-1-(c.length-1)/2),this.$stage.prepend(d[c[c.length-1]].clone().addClass("cloned")))}},{filter:["width","items","settings"],run:function(){var a,b,c,d=this.settings.rtl?1:-1,e=(this.width()/this.settings.items).toFixed(3),f=0;for(this._coordinates=[],b=0,c=this._clones.length+this._items.length;c>b;b++)a=this._mergers[this.relative(b)],a=this.settings.mergeFit&&Math.min(a,this.settings.items)||a,f+=(this.settings.autoWidth?this._items[this.relative(b)].width()+this.settings.margin:e*a)*d,this._coordinates.push(f)}},{filter:["width","items","settings"],run:function(){var b,c,d=(this.width()/this.settings.items).toFixed(3),e={width:Math.abs(this._coordinates[this._coordinates.length-1])+2*this.settings.stagePadding,"padding-left":this.settings.stagePadding||"","padding-right":this.settings.stagePadding||""};if(this.$stage.css(e),e={width:this.settings.autoWidth?"auto":d-this.settings.margin},e[this.settings.rtl?"margin-left":"margin-right"]=this.settings.margin,!this.settings.autoWidth&&a.grep(this._mergers,function(a){return a>1}).length>0)for(b=0,c=this._coordinates.length;c>b;b++)e.width=Math.abs(this._coordinates[b])-Math.abs(this._coordinates[b-1]||0)-this.settings.margin,this.$stage.children().eq(b).css(e);else this.$stage.children().css(e)}},{filter:["width","items","settings"],run:function(a){a.current&&this.reset(this.$stage.children().index(a.current))}},{filter:["position"],run:function(){this.animate(this.coordinates(this._current))}},{filter:["width","position","items","settings"],run:function(){var a,b,c,d,e=this.settings.rtl?1:-1,f=2*this.settings.stagePadding,g=this.coordinates(this.current())+f,h=g+this.width()*e,i=[];for(c=0,d=this._coordinates.length;d>c;c++)a=this._coordinates[c-1]||0,b=Math.abs(this._coordinates[c])+f*e,(this.op(a,"<=",g)&&this.op(a,">",h)||this.op(b,"<",g)&&this.op(b,">",h))&&i.push(c);this.$stage.children("."+this.settings.activeClass).removeClass(this.settings.activeClass),this.$stage.children(":eq("+i.join("), :eq(")+")").addClass(this.settings.activeClass),this.settings.center&&(this.$stage.children("."+this.settings.centerClass).removeClass(this.settings.centerClass),this.$stage.children().eq(this.current()).addClass(this.settings.centerClass))}}],e.prototype.initialize=function(){if(this.trigger("initialize"),this.$element.addClass(this.settings.baseClass).addClass(this.settings.themeClass).toggleClass("owl-rtl",this.settings.rtl),this.browserSupport(),this.settings.autoWidth&&this.state.imagesLoaded!==!0){var b,c,e;if(b=this.$element.find("img"),c=this.settings.nestedItemSelector?"."+this.settings.nestedItemSelector:d,e=this.$element.children(c).width(),b.length&&0>=e)return this.preloadAutoWidthImages(b),!1}this.$element.addClass("owl-loading"),this.$stage=a("<"+this.settings.stageElement+' class="owl-stage"/>').wrap('<div class="owl-stage-outer">'),this.$element.append(this.$stage.parent()),this.replace(this.$element.children().not(this.$stage.parent())),this._width=this.$element.width(),this.refresh(),this.$element.removeClass("owl-loading").addClass("owl-loaded"),this.eventsCall(),this.internalEvents(),this.addTriggerableEvents(),this.trigger("initialized")},e.prototype.setup=function(){var b=this.viewport(),c=this.options.responsive,d=-1,e=null;c?(a.each(c,function(a){b>=a&&a>d&&(d=Number(a))}),e=a.extend({},this.options,c[d]),delete e.responsive,e.responsiveClass&&this.$element.attr("class",function(a,b){return b.replace(/\b owl-responsive-\S+/g,"")}).addClass("owl-responsive-"+d)):e=a.extend({},this.options),(null===this.settings||this._breakpoint!==d)&&(this.trigger("change",{property:{name:"settings",value:e}}),this._breakpoint=d,this.settings=e,this.invalidate("settings"),this.trigger("changed",{property:{name:"settings",value:this.settings}}))},e.prototype.optionsLogic=function(){this.$element.toggleClass("owl-center",this.settings.center),this.settings.loop&&this._items.length<this.settings.items&&(this.settings.loop=!1),this.settings.autoWidth&&(this.settings.stagePadding=!1,this.settings.merge=!1)},e.prototype.prepare=function(b){var c=this.trigger("prepare",{content:b});return c.data||(c.data=a("<"+this.settings.itemElement+"/>").addClass(this.settings.itemClass).append(b)),this.trigger("prepared",{content:c.data}),c.data},e.prototype.update=function(){for(var b=0,c=this._pipe.length,d=a.proxy(function(a){return this[a]},this._invalidated),e={};c>b;)(this._invalidated.all||a.grep(this._pipe[b].filter,d).length>0)&&this._pipe[b].run(e),b++;this._invalidated={}},e.prototype.width=function(a){switch(a=a||e.Width.Default){case e.Width.Inner:case e.Width.Outer:return this._width;default:return this._width-2*this.settings.stagePadding+this.settings.margin}},e.prototype.refresh=function(){if(0===this._items.length)return!1;(new Date).getTime();this.trigger("refresh"),this.setup(),this.optionsLogic(),this.$stage.addClass("owl-refresh"),this.update(),this.$stage.removeClass("owl-refresh"),this.state.orientation=b.orientation,this.watchVisibility(),this.trigger("refreshed")},e.prototype.eventsCall=function(){this.e._onDragStart=a.proxy(function(a){this.onDragStart(a)},this),this.e._onDragMove=a.proxy(function(a){this.onDragMove(a)},this),this.e._onDragEnd=a.proxy(function(a){this.onDragEnd(a)},this),this.e._onResize=a.proxy(function(a){this.onResize(a)},this),this.e._transitionEnd=a.proxy(function(a){this.transitionEnd(a)},this),this.e._preventClick=a.proxy(function(a){this.preventClick(a)},this)},e.prototype.onThrottledResize=function(){b.clearTimeout(this.resizeTimer),this.resizeTimer=b.setTimeout(this.e._onResize,this.settings.responsiveRefreshRate)},e.prototype.onResize=function(){return this._items.length?this._width===this.$element.width()?!1:this.trigger("resize").isDefaultPrevented()?!1:(this._width=this.$element.width(),this.invalidate("width"),this.refresh(),void this.trigger("resized")):!1},e.prototype.eventsRouter=function(a){var b=a.type;"mousedown"===b||"touchstart"===b?this.onDragStart(a):"mousemove"===b||"touchmove"===b?this.onDragMove(a):"mouseup"===b||"touchend"===b?this.onDragEnd(a):"touchcancel"===b&&this.onDragEnd(a)},e.prototype.internalEvents=function(){var c=(k(),l());this.settings.mouseDrag?(this.$stage.on("mousedown",a.proxy(function(a){this.eventsRouter(a)},this)),this.$stage.on("dragstart",function(){return!1}),this.$stage.get(0).onselectstart=function(){return!1}):this.$element.addClass("owl-text-select-on"),this.settings.touchDrag&&!c&&this.$stage.on("touchstart touchcancel",a.proxy(function(a){this.eventsRouter(a)},this)),this.transitionEndVendor&&this.on(this.$stage.get(0),this.transitionEndVendor,this.e._transitionEnd,!1),this.settings.responsive!==!1&&this.on(b,"resize",a.proxy(this.onThrottledResize,this))},e.prototype.onDragStart=function(d){var e,g,h,i;if(e=d.originalEvent||d||b.event,3===e.which||this.state.isTouch)return!1;if("mousedown"===e.type&&this.$stage.addClass("owl-grab"),this.trigger("drag"),this.drag.startTime=(new Date).getTime(),this.speed(0),this.state.isTouch=!0,this.state.isScrolling=!1,this.state.isSwiping=!1,this.drag.distance=0,g=f(e).x,h=f(e).y,this.drag.offsetX=this.$stage.position().left,this.drag.offsetY=this.$stage.position().top,this.settings.rtl&&(this.drag.offsetX=this.$stage.position().left+this.$stage.width()-this.width()+this.settings.margin),this.state.inMotion&&this.support3d)i=this.getTransformProperty(),this.drag.offsetX=i,this.animate(i),this.state.inMotion=!0;else if(this.state.inMotion&&!this.support3d)return this.state.inMotion=!1,!1;this.drag.startX=g-this.drag.offsetX,this.drag.startY=h-this.drag.offsetY,this.drag.start=g-this.drag.startX,this.drag.targetEl=e.target||e.srcElement,this.drag.updatedX=this.drag.start,("IMG"===this.drag.targetEl.tagName||"A"===this.drag.targetEl.tagName)&&(this.drag.targetEl.draggable=!1),a(c).on("mousemove.owl.dragEvents mouseup.owl.dragEvents touchmove.owl.dragEvents touchend.owl.dragEvents",a.proxy(function(a){this.eventsRouter(a)},this))},e.prototype.onDragMove=function(a){var c,e,g,h,i,j;this.state.isTouch&&(this.state.isScrolling||(c=a.originalEvent||a||b.event,e=f(c).x,g=f(c).y,this.drag.currentX=e-this.drag.startX,this.drag.currentY=g-this.drag.startY,this.drag.distance=this.drag.currentX-this.drag.offsetX,this.drag.distance<0?this.state.direction=this.settings.rtl?"right":"left":this.drag.distance>0&&(this.state.direction=this.settings.rtl?"left":"right"),this.settings.loop?this.op(this.drag.currentX,">",this.coordinates(this.minimum()))&&"right"===this.state.direction?this.drag.currentX-=(this.settings.center&&this.coordinates(0))-this.coordinates(this._items.length):this.op(this.drag.currentX,"<",this.coordinates(this.maximum()))&&"left"===this.state.direction&&(this.drag.currentX+=(this.settings.center&&this.coordinates(0))-this.coordinates(this._items.length)):(h=this.coordinates(this.settings.rtl?this.maximum():this.minimum()),i=this.coordinates(this.settings.rtl?this.minimum():this.maximum()),j=this.settings.pullDrag?this.drag.distance/5:0,this.drag.currentX=Math.max(Math.min(this.drag.currentX,h+j),i+j)),(this.drag.distance>8||this.drag.distance<-8)&&(c.preventDefault!==d?c.preventDefault():c.returnValue=!1,this.state.isSwiping=!0),this.drag.updatedX=this.drag.currentX,(this.drag.currentY>16||this.drag.currentY<-16)&&this.state.isSwiping===!1&&(this.state.isScrolling=!0,this.drag.updatedX=this.drag.start),this.animate(this.drag.updatedX)))},e.prototype.onDragEnd=function(b){var d,e,f;if(this.state.isTouch){if("mouseup"===b.type&&this.$stage.removeClass("owl-grab"),this.trigger("dragged"),this.drag.targetEl.removeAttribute("draggable"),this.state.isTouch=!1,this.state.isScrolling=!1,this.state.isSwiping=!1,0===this.drag.distance&&this.state.inMotion!==!0)return this.state.inMotion=!1,!1;this.drag.endTime=(new Date).getTime(),d=this.drag.endTime-this.drag.startTime,e=Math.abs(this.drag.distance),(e>3||d>300)&&this.removeClick(this.drag.targetEl),f=this.closest(this.drag.updatedX),this.speed(this.settings.dragEndSpeed||this.settings.smartSpeed),this.current(f),this.invalidate("position"),this.update(),this.settings.pullDrag||this.drag.updatedX!==this.coordinates(f)||this.transitionEnd(),this.drag.distance=0,a(c).off(".owl.dragEvents")}},e.prototype.removeClick=function(c){this.drag.targetEl=c,a(c).on("click.preventClick",this.e._preventClick),b.setTimeout(function(){a(c).off("click.preventClick")},300)},e.prototype.preventClick=function(b){b.preventDefault?b.preventDefault():b.returnValue=!1,b.stopPropagation&&b.stopPropagation(),a(b.target).off("click.preventClick")},e.prototype.getTransformProperty=function(){var a,c;return a=b.getComputedStyle(this.$stage.get(0),null).getPropertyValue(this.vendorName+"transform"),a=a.replace(/matrix(3d)?\(|\)/g,"").split(","),c=16===a.length,c!==!0?a[4]:a[12]},e.prototype.closest=function(b){var c=-1,d=30,e=this.width(),f=this.coordinates();return this.settings.freeDrag||a.each(f,a.proxy(function(a,g){return b>g-d&&g+d>b?c=a:this.op(b,"<",g)&&this.op(b,">",f[a+1]||g-e)&&(c="left"===this.state.direction?a+1:a),-1===c},this)),this.settings.loop||(this.op(b,">",f[this.minimum()])?c=b=this.minimum():this.op(b,"<",f[this.maximum()])&&(c=b=this.maximum())),c},e.prototype.animate=function(b){this.trigger("translate"),this.state.inMotion=this.speed()>0,this.support3d?this.$stage.css({transform:"translate3d("+b+"px,0px, 0px)",transition:this.speed()/1e3+"s"}):this.state.isTouch?this.$stage.css({left:b+"px"}):this.$stage.animate({left:b},this.speed()/1e3,this.settings.fallbackEasing,a.proxy(function(){this.state.inMotion&&this.transitionEnd()},this))},e.prototype.current=function(a){if(a===d)return this._current;if(0===this._items.length)return d;if(a=this.normalize(a),this._current!==a){var b=this.trigger("change",{property:{name:"position",value:a}});b.data!==d&&(a=this.normalize(b.data)),this._current=a,this.invalidate("position"),this.trigger("changed",{property:{name:"position",value:this._current}})}return this._current},e.prototype.invalidate=function(a){this._invalidated[a]=!0},e.prototype.reset=function(a){a=this.normalize(a),a!==d&&(this._speed=0,this._current=a,this.suppress(["translate","translated"]),this.animate(this.coordinates(a)),this.release(["translate","translated"]))},e.prototype.normalize=function(b,c){var e=c?this._items.length:this._items.length+this._clones.length;return!a.isNumeric(b)||1>e?d:b=this._clones.length?(b%e+e)%e:Math.max(this.minimum(c),Math.min(this.maximum(c),b))},e.prototype.relative=function(a){return a=this.normalize(a),a-=this._clones.length/2,this.normalize(a,!0)},e.prototype.maximum=function(a){var b,c,d,e=0,f=this.settings;if(a)return this._items.length-1;if(!f.loop&&f.center)b=this._items.length-1;else if(f.loop||f.center)if(f.loop||f.center)b=this._items.length+f.items;else{if(!f.autoWidth&&!f.merge)throw"Can not detect maximum absolute position.";for(revert=f.rtl?1:-1,c=this.$stage.width()-this.$element.width();(d=this.coordinates(e))&&!(d*revert>=c);)b=++e}else b=this._items.length-f.items;return b},e.prototype.minimum=function(a){return a?0:this._clones.length/2},e.prototype.items=function(a){return a===d?this._items.slice():(a=this.normalize(a,!0),this._items[a])},e.prototype.mergers=function(a){return a===d?this._mergers.slice():(a=this.normalize(a,!0),this._mergers[a])},e.prototype.clones=function(b){var c=this._clones.length/2,e=c+this._items.length,f=function(a){return a%2===0?e+a/2:c-(a+1)/2};return b===d?a.map(this._clones,function(a,b){return f(b)}):a.map(this._clones,function(a,c){return a===b?f(c):null})},e.prototype.speed=function(a){return a!==d&&(this._speed=a),this._speed},e.prototype.coordinates=function(b){var c=null;return b===d?a.map(this._coordinates,a.proxy(function(a,b){return this.coordinates(b)},this)):(this.settings.center?(c=this._coordinates[b],c+=(this.width()-c+(this._coordinates[b-1]||0))/2*(this.settings.rtl?-1:1)):c=this._coordinates[b-1]||0,c)},e.prototype.duration=function(a,b,c){return Math.min(Math.max(Math.abs(b-a),1),6)*Math.abs(c||this.settings.smartSpeed)},e.prototype.to=function(c,d){if(this.settings.loop){var e=c-this.relative(this.current()),f=this.current(),g=this.current(),h=this.current()+e,i=0>g-h?!0:!1,j=this._clones.length+this._items.length;h<this.settings.items&&i===!1?(f=g+this._items.length,this.reset(f)):h>=j-this.settings.items&&i===!0&&(f=g-this._items.length,this.reset(f)),b.clearTimeout(this.e._goToLoop),this.e._goToLoop=b.setTimeout(a.proxy(function(){this.speed(this.duration(this.current(),f+e,d)),this.current(f+e),this.update()},this),30)}else this.speed(this.duration(this.current(),c,d)),this.current(c),this.update()},e.prototype.next=function(a){a=a||!1,this.to(this.relative(this.current())+1,a)},e.prototype.prev=function(a){a=a||!1,this.to(this.relative(this.current())-1,a)},e.prototype.transitionEnd=function(a){return a!==d&&(a.stopPropagation(),(a.target||a.srcElement||a.originalTarget)!==this.$stage.get(0))?!1:(this.state.inMotion=!1,void this.trigger("translated"))},e.prototype.viewport=function(){var d;if(this.options.responsiveBaseElement!==b)d=a(this.options.responsiveBaseElement).width();else if(b.innerWidth)d=b.innerWidth;else{if(!c.documentElement||!c.documentElement.clientWidth)throw"Can not detect viewport width.";d=c.documentElement.clientWidth}return d},e.prototype.replace=function(b){this.$stage.empty(),this._items=[],b&&(b=b instanceof jQuery?b:a(b)),this.settings.nestedItemSelector&&(b=b.find("."+this.settings.nestedItemSelector)),b.filter(function(){return 1===this.nodeType}).each(a.proxy(function(a,b){b=this.prepare(b),this.$stage.append(b),this._items.push(b),this._mergers.push(1*b.find("[data-merge]").andSelf("[data-merge]").attr("data-merge")||1)},this)),this.reset(a.isNumeric(this.settings.startPosition)?this.settings.startPosition:0),this.invalidate("items")},e.prototype.add=function(a,b){b=b===d?this._items.length:this.normalize(b,!0),this.trigger("add",{content:a,position:b}),0===this._items.length||b===this._items.length?(this.$stage.append(a),this._items.push(a),this._mergers.push(1*a.find("[data-merge]").andSelf("[data-merge]").attr("data-merge")||1)):(this._items[b].before(a),this._items.splice(b,0,a),this._mergers.splice(b,0,1*a.find("[data-merge]").andSelf("[data-merge]").attr("data-merge")||1)),this.invalidate("items"),this.trigger("added",{content:a,position:b})},e.prototype.remove=function(a){a=this.normalize(a,!0),a!==d&&(this.trigger("remove",{content:this._items[a],position:a}),this._items[a].remove(),this._items.splice(a,1),this._mergers.splice(a,1),this.invalidate("items"),this.trigger("removed",{content:null,position:a}))},e.prototype.addTriggerableEvents=function(){var b=a.proxy(function(b,c){return a.proxy(function(a){a.relatedTarget!==this&&(this.suppress([c]),b.apply(this,[].slice.call(arguments,1)),this.release([c]))},this)},this);a.each({next:this.next,prev:this.prev,to:this.to,destroy:this.destroy,refresh:this.refresh,replace:this.replace,add:this.add,remove:this.remove},a.proxy(function(a,c){this.$element.on(a+".owl.carousel",b(c,a+".owl.carousel"))},this))},e.prototype.watchVisibility=function(){function c(a){return a.offsetWidth>0&&a.offsetHeight>0}function d(){c(this.$element.get(0))&&(this.$element.removeClass("owl-hidden"),this.refresh(),b.clearInterval(this.e._checkVisibile))}c(this.$element.get(0))||(this.$element.addClass("owl-hidden"),b.clearInterval(this.e._checkVisibile),this.e._checkVisibile=b.setInterval(a.proxy(d,this),500))},e.prototype.preloadAutoWidthImages=function(b){var c,d,e,f;c=0,d=this,b.each(function(g,h){e=a(h),f=new Image,f.onload=function(){c++,e.attr("src",f.src),e.css("opacity",1),c>=b.length&&(d.state.imagesLoaded=!0,d.initialize())},f.src=e.attr("src")||e.attr("data-src")||e.attr("data-src-retina")})},e.prototype.destroy=function(){this.$element.hasClass(this.settings.themeClass)&&this.$element.removeClass(this.settings.themeClass),this.settings.responsive!==!1&&a(b).off("resize.owl.carousel"),this.transitionEndVendor&&this.off(this.$stage.get(0),this.transitionEndVendor,this.e._transitionEnd);for(var d in this._plugins)this._plugins[d].destroy();(this.settings.mouseDrag||this.settings.touchDrag)&&(this.$stage.off("mousedown touchstart touchcancel"),a(c).off(".owl.dragEvents"),this.$stage.get(0).onselectstart=function(){},this.$stage.off("dragstart",function(){return!1})),this.$element.off(".owl"),this.$stage.children(".cloned").remove(),this.e=null,this.$element.removeData("owlCarousel"),this.$stage.children().contents().unwrap(),this.$stage.children().unwrap(),this.$stage.unwrap()},e.prototype.op=function(a,b,c){var d=this.settings.rtl;switch(b){case"<":return d?a>c:c>a;case">":return d?c>a:a>c;case">=":return d?c>=a:a>=c;case"<=":return d?a>=c:c>=a}},e.prototype.on=function(a,b,c,d){a.addEventListener?a.addEventListener(b,c,d):a.attachEvent&&a.attachEvent("on"+b,c)},e.prototype.off=function(a,b,c,d){a.removeEventListener?a.removeEventListener(b,c,d):a.detachEvent&&a.detachEvent("on"+b,c)},e.prototype.trigger=function(b,c,d){var e={item:{count:this._items.length,index:this.current()}},f=a.camelCase(a.grep(["on",b,d],function(a){return a}).join("-").toLowerCase()),g=a.Event([b,"owl",d||"carousel"].join(".").toLowerCase(),a.extend({relatedTarget:this},e,c));return this._supress[b]||(a.each(this._plugins,function(a,b){b.onTrigger&&b.onTrigger(g)}),this.$element.trigger(g),this.settings&&"function"==typeof this.settings[f]&&this.settings[f].apply(this,g)),g},e.prototype.suppress=function(b){a.each(b,a.proxy(function(a,b){this._supress[b]=!0},this))},e.prototype.release=function(b){a.each(b,a.proxy(function(a,b){delete this._supress[b]},this))},e.prototype.browserSupport=function(){if(this.support3d=j(),this.support3d){this.transformVendor=i();var a=["transitionend","webkitTransitionEnd","transitionend","oTransitionEnd"];this.transitionEndVendor=a[h()],this.vendorName=this.transformVendor.replace(/Transform/i,""),this.vendorName=""!==this.vendorName?"-"+this.vendorName.toLowerCase()+"-":""}this.state.orientation=b.orientation},a.fn.owlCarousel=function(b){return this.each(function(){a(this).data("owlCarousel")||a(this).data("owlCarousel",new e(this,b))})},a.fn.owlCarousel.Constructor=e}(window.Zepto||window.jQuery,window,document),function(a,b){var c=function(b){this._core=b,this._loaded=[],this._handlers={"initialized.owl.carousel change.owl.carousel":a.proxy(function(b){if(b.namespace&&this._core.settings&&this._core.settings.lazyLoad&&(b.property&&"position"==b.property.name||"initialized"==b.type))for(var c=this._core.settings,d=c.center&&Math.ceil(c.items/2)||c.items,e=c.center&&-1*d||0,f=(b.property&&b.property.value||this._core.current())+e,g=this._core.clones().length,h=a.proxy(function(a,b){this.load(b)},this);e++<d;)this.load(g/2+this._core.relative(f)),g&&a.each(this._core.clones(this._core.relative(f++)),h)},this)},this._core.options=a.extend({},c.Defaults,this._core.options),this._core.$element.on(this._handlers)};c.Defaults={lazyLoad:!1},c.prototype.load=function(c){var d=this._core.$stage.children().eq(c),e=d&&d.find(".owl-lazy");!e||a.inArray(d.get(0),this._loaded)>-1||(e.each(a.proxy(function(c,d){var e,f=a(d),g=b.devicePixelRatio>1&&f.attr("data-src-retina")||f.attr("data-src");this._core.trigger("load",{element:f,url:g},"lazy"),f.is("img")?f.one("load.owl.lazy",a.proxy(function(){f.css("opacity",1),this._core.trigger("loaded",{element:f,url:g},"lazy")},this)).attr("src",g):(e=new Image,e.onload=a.proxy(function(){f.css({"background-image":"url("+g+")",opacity:"1"}),this._core.trigger("loaded",{element:f,url:g},"lazy")},this),e.src=g)},this)),this._loaded.push(d.get(0)))},c.prototype.destroy=function(){var a,b;for(a in this.handlers)this._core.$element.off(a,this.handlers[a]);for(b in Object.getOwnPropertyNames(this))"function"!=typeof this[b]&&(this[b]=null)},a.fn.owlCarousel.Constructor.Plugins.Lazy=c}(window.Zepto||window.jQuery,window,document),function(a){var b=function(c){this._core=c,this._handlers={"initialized.owl.carousel":a.proxy(function(){this._core.settings.autoHeight&&this.update()},this),"changed.owl.carousel":a.proxy(function(a){this._core.settings.autoHeight&&"position"==a.property.name&&this.update()},this),"loaded.owl.lazy":a.proxy(function(a){this._core.settings.autoHeight&&a.element.closest("."+this._core.settings.itemClass)===this._core.$stage.children().eq(this._core.current())&&this.update()},this)},this._core.options=a.extend({},b.Defaults,this._core.options),this._core.$element.on(this._handlers)};b.Defaults={autoHeight:!1,autoHeightClass:"owl-height"},b.prototype.update=function(){this._core.$stage.parent().height(this._core.$stage.children().eq(this._core.current()).height()).addClass(this._core.settings.autoHeightClass)},b.prototype.destroy=function(){var a,b;for(a in this._handlers)this._core.$element.off(a,this._handlers[a]);for(b in Object.getOwnPropertyNames(this))"function"!=typeof this[b]&&(this[b]=null)},a.fn.owlCarousel.Constructor.Plugins.AutoHeight=b}(window.Zepto||window.jQuery,window,document),function(a,b,c){var d=function(b){this._core=b,this._videos={},this._playing=null,this._fullscreen=!1,this._handlers={"resize.owl.carousel":a.proxy(function(a){this._core.settings.video&&!this.isInFullScreen()&&a.preventDefault()},this),"refresh.owl.carousel changed.owl.carousel":a.proxy(function(){this._playing&&this.stop()},this),"prepared.owl.carousel":a.proxy(function(b){var c=a(b.content).find(".owl-video");c.length&&(c.css("display","none"),this.fetch(c,a(b.content)))},this)},this._core.options=a.extend({},d.Defaults,this._core.options),this._core.$element.on(this._handlers),this._core.$element.on("click.owl.video",".owl-video-play-icon",a.proxy(function(a){this.play(a)},this))};d.Defaults={video:!1,videoHeight:!1,videoWidth:!1},d.prototype.fetch=function(a,b){var c=a.attr("data-vimeo-id")?"vimeo":"youtube",d=a.attr("data-vimeo-id")||a.attr("data-youtube-id"),e=a.attr("data-width")||this._core.settings.videoWidth,f=a.attr("data-height")||this._core.settings.videoHeight,g=a.attr("href");if(!g)throw new Error("Missing video URL.");if(d=g.match(/(http:|https:|)\/\/(player.|www.)?(vimeo\.com|youtu(be\.com|\.be|be\.googleapis\.com))\/(video\/|embed\/|watch\?v=|v\/)?([A-Za-z0-9._%-]*)(\&\S+)?/),d[3].indexOf("youtu")>-1)c="youtube";else{if(!(d[3].indexOf("vimeo")>-1))throw new Error("Video URL not supported.");c="vimeo"}d=d[6],this._videos[g]={type:c,id:d,width:e,height:f},b.attr("data-video",g),this.thumbnail(a,this._videos[g])},d.prototype.thumbnail=function(b,c){var d,e,f,g=c.width&&c.height?'style="width:'+c.width+"px;height:"+c.height+'px;"':"",h=b.find("img"),i="src",j="",k=this._core.settings,l=function(a){e='<div class="owl-video-play-icon"></div>',d=k.lazyLoad?'<div class="owl-video-tn '+j+'" '+i+'="'+a+'"></div>':'<div class="owl-video-tn" style="opacity:1;background-image:url('+a+')"></div>',b.after(d),b.after(e)};return b.wrap('<div class="owl-video-wrapper"'+g+"></div>"),this._core.settings.lazyLoad&&(i="data-src",j="owl-lazy"),h.length?(l(h.attr(i)),h.remove(),!1):void("youtube"===c.type?(f="http://img.youtube.com/vi/"+c.id+"/hqdefault.jpg",l(f)):"vimeo"===c.type&&a.ajax({type:"GET",url:"http://vimeo.com/api/v2/video/"+c.id+".json",jsonp:"callback",dataType:"jsonp",success:function(a){f=a[0].thumbnail_large,l(f)}}))},d.prototype.stop=function(){this._core.trigger("stop",null,"video"),this._playing.find(".owl-video-frame").remove(),this._playing.removeClass("owl-video-playing"),this._playing=null},d.prototype.play=function(b){this._core.trigger("play",null,"video"),this._playing&&this.stop();var c,d,e=a(b.target||b.srcElement),f=e.closest("."+this._core.settings.itemClass),g=this._videos[f.attr("data-video")],h=g.width||"100%",i=g.height||this._core.$stage.height();"youtube"===g.type?c='<iframe width="'+h+'" height="'+i+'" src="http://www.youtube.com/embed/'+g.id+"?autoplay=1&v="+g.id+'" frameborder="0" allowfullscreen></iframe>':"vimeo"===g.type&&(c='<iframe src="http://player.vimeo.com/video/'+g.id+'?autoplay=1" width="'+h+'" height="'+i+'" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>'),f.addClass("owl-video-playing"),this._playing=f,d=a('<div style="height:'+i+"px; width:"+h+'px" class="owl-video-frame">'+c+"</div>"),e.after(d)},d.prototype.isInFullScreen=function(){var d=c.fullscreenElement||c.mozFullScreenElement||c.webkitFullscreenElement;return d&&a(d).parent().hasClass("owl-video-frame")&&(this._core.speed(0),this._fullscreen=!0),d&&this._fullscreen&&this._playing?!1:this._fullscreen?(this._fullscreen=!1,!1):this._playing&&this._core.state.orientation!==b.orientation?(this._core.state.orientation=b.orientation,!1):!0},d.prototype.destroy=function(){var a,b;this._core.$element.off("click.owl.video");for(a in this._handlers)this._core.$element.off(a,this._handlers[a]);for(b in Object.getOwnPropertyNames(this))"function"!=typeof this[b]&&(this[b]=null)},a.fn.owlCarousel.Constructor.Plugins.Video=d}(window.Zepto||window.jQuery,window,document),function(a,b,c,d){var e=function(b){this.core=b,this.core.options=a.extend({},e.Defaults,this.core.options),this.swapping=!0,this.previous=d,this.next=d,this.handlers={"change.owl.carousel":a.proxy(function(a){"position"==a.property.name&&(this.previous=this.core.current(),this.next=a.property.value)},this),"drag.owl.carousel dragged.owl.carousel translated.owl.carousel":a.proxy(function(a){this.swapping="translated"==a.type},this),"translate.owl.carousel":a.proxy(function(){this.swapping&&(this.core.options.animateOut||this.core.options.animateIn)&&this.swap()},this)},this.core.$element.on(this.handlers)};e.Defaults={animateOut:!1,animateIn:!1},e.prototype.swap=function(){if(1===this.core.settings.items&&this.core.support3d){this.core.speed(0);var b,c=a.proxy(this.clear,this),d=this.core.$stage.children().eq(this.previous),e=this.core.$stage.children().eq(this.next),f=this.core.settings.animateIn,g=this.core.settings.animateOut;this.core.current()!==this.previous&&(g&&(b=this.core.coordinates(this.previous)-this.core.coordinates(this.next),d.css({left:b+"px"}).addClass("animated owl-animated-out").addClass(g).one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend",c)),f&&e.addClass("animated owl-animated-in").addClass(f).one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend",c))}},e.prototype.clear=function(b){a(b.target).css({left:""}).removeClass("animated owl-animated-out owl-animated-in").removeClass(this.core.settings.animateIn).removeClass(this.core.settings.animateOut),this.core.transitionEnd()},e.prototype.destroy=function(){var a,b;for(a in this.handlers)this.core.$element.off(a,this.handlers[a]);for(b in Object.getOwnPropertyNames(this))"function"!=typeof this[b]&&(this[b]=null)},a.fn.owlCarousel.Constructor.Plugins.Animate=e}(window.Zepto||window.jQuery,window,document),function(a,b,c){var d=function(b){this.core=b,this.core.options=a.extend({},d.Defaults,this.core.options),this.handlers={"translated.owl.carousel refreshed.owl.carousel":a.proxy(function(){this.autoplay()
-},this),"play.owl.autoplay":a.proxy(function(a,b,c){this.play(b,c)},this),"stop.owl.autoplay":a.proxy(function(){this.stop()},this),"mouseover.owl.autoplay":a.proxy(function(){this.core.settings.autoplayHoverPause&&this.pause()},this),"mouseleave.owl.autoplay":a.proxy(function(){this.core.settings.autoplayHoverPause&&this.autoplay()},this)},this.core.$element.on(this.handlers)};d.Defaults={autoplay:!1,autoplayTimeout:5e3,autoplayHoverPause:!1,autoplaySpeed:!1},d.prototype.autoplay=function(){this.core.settings.autoplay&&!this.core.state.videoPlay?(b.clearInterval(this.interval),this.interval=b.setInterval(a.proxy(function(){this.play()},this),this.core.settings.autoplayTimeout)):b.clearInterval(this.interval)},d.prototype.play=function(){return c.hidden===!0||this.core.state.isTouch||this.core.state.isScrolling||this.core.state.isSwiping||this.core.state.inMotion?void 0:this.core.settings.autoplay===!1?void b.clearInterval(this.interval):void this.core.next(this.core.settings.autoplaySpeed)},d.prototype.stop=function(){b.clearInterval(this.interval)},d.prototype.pause=function(){b.clearInterval(this.interval)},d.prototype.destroy=function(){var a,c;b.clearInterval(this.interval);for(a in this.handlers)this.core.$element.off(a,this.handlers[a]);for(c in Object.getOwnPropertyNames(this))"function"!=typeof this[c]&&(this[c]=null)},a.fn.owlCarousel.Constructor.Plugins.autoplay=d}(window.Zepto||window.jQuery,window,document),function(a){"use strict";var b=function(c){this._core=c,this._initialized=!1,this._pages=[],this._controls={},this._templates=[],this.$element=this._core.$element,this._overrides={next:this._core.next,prev:this._core.prev,to:this._core.to},this._handlers={"prepared.owl.carousel":a.proxy(function(b){this._core.settings.dotsData&&this._templates.push(a(b.content).find("[data-dot]").andSelf("[data-dot]").attr("data-dot"))},this),"add.owl.carousel":a.proxy(function(b){this._core.settings.dotsData&&this._templates.splice(b.position,0,a(b.content).find("[data-dot]").andSelf("[data-dot]").attr("data-dot"))},this),"remove.owl.carousel prepared.owl.carousel":a.proxy(function(a){this._core.settings.dotsData&&this._templates.splice(a.position,1)},this),"change.owl.carousel":a.proxy(function(a){if("position"==a.property.name&&!this._core.state.revert&&!this._core.settings.loop&&this._core.settings.navRewind){var b=this._core.current(),c=this._core.maximum(),d=this._core.minimum();a.data=a.property.value>c?b>=c?d:c:a.property.value<d?c:a.property.value}},this),"changed.owl.carousel":a.proxy(function(a){"position"==a.property.name&&this.draw()},this),"refreshed.owl.carousel":a.proxy(function(){this._initialized||(this.initialize(),this._initialized=!0),this._core.trigger("refresh",null,"navigation"),this.update(),this.draw(),this._core.trigger("refreshed",null,"navigation")},this)},this._core.options=a.extend({},b.Defaults,this._core.options),this.$element.on(this._handlers)};b.Defaults={nav:!1,navRewind:!0,navText:["prev","next"],navSpeed:!1,navElement:"div",navContainer:!1,navContainerClass:"owl-nav",navClass:["owl-prev","owl-next"],slideBy:1,dotClass:"owl-dot",dotsClass:"owl-dots",dots:!0,dotsEach:!1,dotData:!1,dotsSpeed:!1,dotsContainer:!1,controlsClass:"owl-controls"},b.prototype.initialize=function(){var b,c,d=this._core.settings;d.dotsData||(this._templates=[a("<div>").addClass(d.dotClass).append(a("<span>")).prop("outerHTML")]),d.navContainer&&d.dotsContainer||(this._controls.$container=a("<div>").addClass(d.controlsClass).appendTo(this.$element)),this._controls.$indicators=d.dotsContainer?a(d.dotsContainer):a("<div>").hide().addClass(d.dotsClass).appendTo(this._controls.$container),this._controls.$indicators.on("click","div",a.proxy(function(b){var c=a(b.target).parent().is(this._controls.$indicators)?a(b.target).index():a(b.target).parent().index();b.preventDefault(),this.to(c,d.dotsSpeed)},this)),b=d.navContainer?a(d.navContainer):a("<div>").addClass(d.navContainerClass).prependTo(this._controls.$container),this._controls.$next=a("<"+d.navElement+">"),this._controls.$previous=this._controls.$next.clone(),this._controls.$previous.addClass(d.navClass[0]).html(d.navText[0]).hide().prependTo(b).on("click",a.proxy(function(){this.prev(d.navSpeed)},this)),this._controls.$next.addClass(d.navClass[1]).html(d.navText[1]).hide().appendTo(b).on("click",a.proxy(function(){this.next(d.navSpeed)},this));for(c in this._overrides)this._core[c]=a.proxy(this[c],this)},b.prototype.destroy=function(){var a,b,c,d;for(a in this._handlers)this.$element.off(a,this._handlers[a]);for(b in this._controls)this._controls[b].remove();for(d in this.overides)this._core[d]=this._overrides[d];for(c in Object.getOwnPropertyNames(this))"function"!=typeof this[c]&&(this[c]=null)},b.prototype.update=function(){var a,b,c,d=this._core.settings,e=this._core.clones().length/2,f=e+this._core.items().length,g=d.center||d.autoWidth||d.dotData?1:d.dotsEach||d.items;if("page"!==d.slideBy&&(d.slideBy=Math.min(d.slideBy,d.items)),d.dots||"page"==d.slideBy)for(this._pages=[],a=e,b=0,c=0;f>a;a++)(b>=g||0===b)&&(this._pages.push({start:a-e,end:a-e+g-1}),b=0,++c),b+=this._core.mergers(this._core.relative(a))},b.prototype.draw=function(){var b,c,d="",e=this._core.settings,f=(this._core.$stage.children(),this._core.relative(this._core.current()));if(!e.nav||e.loop||e.navRewind||(this._controls.$previous.toggleClass("disabled",0>=f),this._controls.$next.toggleClass("disabled",f>=this._core.maximum())),this._controls.$previous.toggle(e.nav),this._controls.$next.toggle(e.nav),e.dots){if(b=this._pages.length-this._controls.$indicators.children().length,e.dotData&&0!==b){for(c=0;c<this._controls.$indicators.children().length;c++)d+=this._templates[this._core.relative(c)];this._controls.$indicators.html(d)}else b>0?(d=new Array(b+1).join(this._templates[0]),this._controls.$indicators.append(d)):0>b&&this._controls.$indicators.children().slice(b).remove();this._controls.$indicators.find(".active").removeClass("active"),this._controls.$indicators.children().eq(a.inArray(this.current(),this._pages)).addClass("active")}this._controls.$indicators.toggle(e.dots)},b.prototype.onTrigger=function(b){var c=this._core.settings;b.page={index:a.inArray(this.current(),this._pages),count:this._pages.length,size:c&&(c.center||c.autoWidth||c.dotData?1:c.dotsEach||c.items)}},b.prototype.current=function(){var b=this._core.relative(this._core.current());return a.grep(this._pages,function(a){return a.start<=b&&a.end>=b}).pop()},b.prototype.getPosition=function(b){var c,d,e=this._core.settings;return"page"==e.slideBy?(c=a.inArray(this.current(),this._pages),d=this._pages.length,b?++c:--c,c=this._pages[(c%d+d)%d].start):(c=this._core.relative(this._core.current()),d=this._core.items().length,b?c+=e.slideBy:c-=e.slideBy),c},b.prototype.next=function(b){a.proxy(this._overrides.to,this._core)(this.getPosition(!0),b)},b.prototype.prev=function(b){a.proxy(this._overrides.to,this._core)(this.getPosition(!1),b)},b.prototype.to=function(b,c,d){var e;d?a.proxy(this._overrides.to,this._core)(b,c):(e=this._pages.length,a.proxy(this._overrides.to,this._core)(this._pages[(b%e+e)%e].start,c))},a.fn.owlCarousel.Constructor.Plugins.Navigation=b}(window.Zepto||window.jQuery,window,document),function(a,b){"use strict";var c=function(d){this._core=d,this._hashes={},this.$element=this._core.$element,this._handlers={"initialized.owl.carousel":a.proxy(function(){"URLHash"==this._core.settings.startPosition&&a(b).trigger("hashchange.owl.navigation")},this),"prepared.owl.carousel":a.proxy(function(b){var c=a(b.content).find("[data-hash]").andSelf("[data-hash]").attr("data-hash");this._hashes[c]=b.content},this)},this._core.options=a.extend({},c.Defaults,this._core.options),this.$element.on(this._handlers),a(b).on("hashchange.owl.navigation",a.proxy(function(){var a=b.location.hash.substring(1),c=this._core.$stage.children(),d=this._hashes[a]&&c.index(this._hashes[a])||0;return a?void this._core.to(d,!1,!0):!1},this))};c.Defaults={URLhashListener:!1},c.prototype.destroy=function(){var c,d;a(b).off("hashchange.owl.navigation");for(c in this._handlers)this._core.$element.off(c,this._handlers[c]);for(d in Object.getOwnPropertyNames(this))"function"!=typeof this[d]&&(this[d]=null)},a.fn.owlCarousel.Constructor.Plugins.Hash=c}(window.Zepto||window.jQuery,window,document);
+!function($, win, doc, undef) {
+ function self(element, key) {
+   this.settings = null;
+   this.options = $.extend({}, self.Defaults, key);
+   this.$element = $(element);
+   this.drag = $.extend({}, o);
+   this.state = $.extend({}, state);
+   this.e = $.extend({}, details);
+   this._plugins = {};
+   this._supress = {};
+   this._current = null;
+   this._speed = null;
+   this._coordinates = [];
+   this._breakpoint = null;
+   this._width = null;
+   this._items = [];
+   this._clones = [];
+   this._mergers = [];
+   this._invalidated = {};
+   this._pipe = [];
+   $.each(self.Plugins, $.proxy(function(tokens, dataAndEvents) {
+     this._plugins[tokens[0].toLowerCase() + tokens.slice(1)] = new dataAndEvents(this);
+   }, this));
+   $.each(self.Pipe, $.proxy(function(dataAndEvents, opts) {
+     this._pipe.push({
+       filter : opts.filter,
+       run : $.proxy(opts.run, this)
+     });
+   }, this));
+   this.setup();
+   this.initialize();
+ }
+ function getTouches(e) {
+   if (e.touches !== undef) {
+     return{
+       x : e.touches[0].pageX,
+       y : e.touches[0].pageY
+     };
+   }
+   if (e.touches === undef) {
+     if (e.pageX !== undef) {
+       return{
+         x : e.pageX,
+         y : e.pageY
+       };
+     }
+     if (e.pageX === undef) {
+       return{
+         x : e.clientX,
+         y : e.clientY
+       };
+     }
+   }
+ }
+ function testProps(opt_attributes) {
+   var letter;
+   var i;
+   var testElement = doc.createElement("div");
+   var map = opt_attributes;
+   for (letter in map) {
+     if (i = map[letter], "undefined" != typeof testElement.style[i]) {
+       return testElement = null, [i, letter];
+     }
+   }
+   return[false];
+ }
+ function setEventPrefix() {
+   return testProps(["transition", "WebkitTransition", "MozTransition", "OTransition"])[1];
+ }
+ function checkCapabilities() {
+   return testProps(["transform", "WebkitTransform", "MozTransform", "OTransform", "msTransform"])[0];
+ }
+ function testAll() {
+   return testProps(["perspective", "webkitPerspective", "MozPerspective", "OPerspective", "MsPerspective"])[0];
+ }
+ function isTouch() {
+   return "ontouchstart" in win || !!navigator.msMaxTouchPoints;
+ }
+ function isMSPointer() {
+   return win.navigator.msPointerEnabled;
+ }
+ var o;
+ var state;
+ var details;
+ o = {
+   start : 0,
+   startX : 0,
+   startY : 0,
+   current : 0,
+   currentX : 0,
+   currentY : 0,
+   offsetX : 0,
+   offsetY : 0,
+   distance : null,
+   startTime : 0,
+   endTime : 0,
+   updatedX : 0,
+   targetEl : null
+ };
+ state = {
+   isTouch : false,
+   isScrolling : false,
+   isSwiping : false,
+   direction : false,
+   inMotion : false
+ };
+ details = {
+   _onDragStart : null,
+   _onDragMove : null,
+   _onDragEnd : null,
+   _transitionEnd : null,
+   _resizer : null,
+   _responsiveCall : null,
+   _goToLoop : null,
+   _checkVisibile : null
+ };
+ self.Defaults = {
+   items : 3,
+   loop : false,
+   center : false,
+   mouseDrag : true,
+   touchDrag : true,
+   pullDrag : true,
+   freeDrag : false,
+   margin : 0,
+   stagePadding : 0,
+   merge : false,
+   mergeFit : true,
+   autoWidth : false,
+   startPosition : 0,
+   rtl : true,
+   smartSpeed : 250,
+   fluidSpeed : false,
+   dragEndSpeed : false,
+   responsive : {},
+   responsiveRefreshRate : 200,
+   responsiveBaseElement : win,
+   responsiveClass : false,
+   fallbackEasing : "swing",
+   info : false,
+   nestedItemSelector : false,
+   itemElement : "div",
+   stageElement : "div",
+   themeClass : "owl-theme",
+   baseClass : "owl-carousel",
+   itemClass : "owl-item",
+   centerClass : "center",
+   activeClass : "active"
+ };
+ self.Width = {
+   Default : "default",
+   Inner : "inner",
+   Outer : "outer"
+ };
+ self.Plugins = {};
+ self.Pipe = [{
+   filter : ["width", "items", "settings"],
+   run : function(options) {
+     options.current = this._items && this._items[this.relative(this._current)];
+   }
+ }, {
+   filter : ["items", "settings"],
+   run : function() {
+     var ky = this._clones;
+     var kx = this.$stage.children(".cloned");
+     if (kx.length !== ky.length || !this.settings.loop && ky.length > 0) {
+       this.$stage.children(".cloned").remove();
+       this._clones = [];
+     }
+   }
+ }, {
+   filter : ["items", "settings"],
+   run : function() {
+     var b;
+     var a;
+     var props = this._clones;
+     var inputs = this._items;
+     var lon = this.settings.loop ? props.length - Math.max(2 * this.settings.items, 4) : 0;
+     b = 0;
+     a = Math.abs(lon / 2);
+     for (;a > b;b++) {
+       if (lon > 0) {
+         this.$stage.children().eq(inputs.length + props.length - 1).remove();
+         props.pop();
+         this.$stage.children().eq(0).remove();
+         props.pop();
+       } else {
+         props.push(props.length / 2);
+         this.$stage.append(inputs[props[props.length - 1]].clone().addClass("cloned"));
+         props.push(inputs.length - 1 - (props.length - 1) / 2);
+         this.$stage.prepend(inputs[props[props.length - 1]].clone().addClass("cloned"));
+       }
+     }
+   }
+ }, {
+   filter : ["width", "items", "settings"],
+   run : function() {
+     var length;
+     var udataCur;
+     var c;
+     var base = this.settings.rtl ? 1 : -1;
+     var smallestSize = (this.width() / this.settings.items).toFixed(3);
+     var value = 0;
+     this._coordinates = [];
+     udataCur = 0;
+     c = this._clones.length + this._items.length;
+     for (;c > udataCur;udataCur++) {
+       length = this._mergers[this.relative(udataCur)];
+       length = this.settings.mergeFit && Math.min(length, this.settings.items) || length;
+       value += (this.settings.autoWidth ? this._items[this.relative(udataCur)].width() + this.settings.margin : smallestSize * length) * base;
+       this._coordinates.push(value);
+     }
+   }
+ }, {
+   filter : ["width", "items", "settings"],
+   run : function() {
+     var i;
+     var ilen;
+     var value = (this.width() / this.settings.items).toFixed(3);
+     var style = {
+       width : Math.abs(this._coordinates[this._coordinates.length - 1]) + 2 * this.settings.stagePadding,
+       "padding-left" : this.settings.stagePadding || "",
+       "padding-right" : this.settings.stagePadding || ""
+     };
+     if (this.$stage.css(style), style = {
+       width : this.settings.autoWidth ? "auto" : value - this.settings.margin
+     }, style[this.settings.rtl ? "margin-left" : "margin-right"] = this.settings.margin, !this.settings.autoWidth && $.grep(this._mergers, function(dataAndEvents) {
+       return dataAndEvents > 1;
+     }).length > 0) {
+       i = 0;
+       ilen = this._coordinates.length;
+       for (;ilen > i;i++) {
+         style.width = Math.abs(this._coordinates[i]) - Math.abs(this._coordinates[i - 1] || 0) - this.settings.margin;
+         this.$stage.children().eq(i).css(style);
+       }
+     } else {
+       this.$stage.children().css(style);
+     }
+   }
+ }, {
+   filter : ["width", "items", "settings"],
+   run : function(options) {
+     if (options.current) {
+       this.reset(this.$stage.children().index(options.current));
+     }
+   }
+ }, {
+   filter : ["position"],
+   run : function() {
+     this.animate(this.coordinates(this._current));
+   }
+ }, {
+   filter : ["width", "position", "items", "settings"],
+   run : function() {
+     var elem;
+     var newVal;
+     var p;
+     var li;
+     var progress = this.settings.rtl ? 1 : -1;
+     var initial = 2 * this.settings.stagePadding;
+     var oldMillis = this.coordinates(this.current()) + initial;
+     var newMillis = oldMillis + this.width() * progress;
+     var include = [];
+     p = 0;
+     li = this._coordinates.length;
+     for (;li > p;p++) {
+       elem = this._coordinates[p - 1] || 0;
+       newVal = Math.abs(this._coordinates[p]) + initial * progress;
+       if (this.op(elem, "<=", oldMillis) && this.op(elem, ">", newMillis) || this.op(newVal, "<", oldMillis) && this.op(newVal, ">", newMillis)) {
+         include.push(p);
+       }
+     }
+     this.$stage.children("." + this.settings.activeClass).removeClass(this.settings.activeClass);
+     this.$stage.children(":eq(" + include.join("), :eq(") + ")").addClass(this.settings.activeClass);
+     if (this.settings.center) {
+       this.$stage.children("." + this.settings.centerClass).removeClass(this.settings.centerClass);
+       this.$stage.children().eq(this.current()).addClass(this.settings.centerClass);
+     }
+   }
+ }];
+ self.prototype.initialize = function() {
+   if (this.trigger("initialize"), this.$element.addClass(this.settings.baseClass).addClass(this.settings.themeClass).toggleClass("owl-rtl", this.settings.rtl), this.browserSupport(), this.settings.autoWidth && this.state.imagesLoaded !== true) {
+     var temp;
+     var e;
+     var currentLevel;
+     if (temp = this.$element.find("img"), e = this.settings.nestedItemSelector ? "." + this.settings.nestedItemSelector : undef, currentLevel = this.$element.children(e).width(), temp.length && 0 >= currentLevel) {
+       return this.preloadAutoWidthImages(temp), false;
+     }
+   }
+   this.$element.addClass("owl-loading");
+   this.$stage = $("<" + this.settings.stageElement + ' class="owl-stage"/>').wrap('<div class="owl-stage-outer">');
+   this.$element.append(this.$stage.parent());
+   this.replace(this.$element.children().not(this.$stage.parent()));
+   this._width = this.$element.width();
+   this.refresh();
+   this.$element.removeClass("owl-loading").addClass("owl-loaded");
+   this.eventsCall();
+   this.internalEvents();
+   this.addTriggerableEvents();
+   this.trigger("initialized");
+ };
+ self.prototype.setup = function() {
+   var max = this.viewport();
+   var values = this.options.responsive;
+   var i = -1;
+   var options = null;
+   if (values) {
+     $.each(values, function(val) {
+       if (max >= val) {
+         if (val > i) {
+           i = Number(val);
+         }
+       }
+     });
+     options = $.extend({}, this.options, values[i]);
+     delete options.responsive;
+     if (options.responsiveClass) {
+       this.$element.attr("class", function(dataAndEvents, lastLine) {
+         return lastLine.replace(/\b owl-responsive-\S+/g, "");
+       }).addClass("owl-responsive-" + i);
+     }
+   } else {
+     options = $.extend({}, this.options);
+   }
+   if (null === this.settings || this._breakpoint !== i) {
+     this.trigger("change", {
+       property : {
+         name : "settings",
+         value : options
+       }
+     });
+     this._breakpoint = i;
+     this.settings = options;
+     this.invalidate("settings");
+     this.trigger("changed", {
+       property : {
+         name : "settings",
+         value : this.settings
+       }
+     });
+   }
+ };
+ self.prototype.optionsLogic = function() {
+   this.$element.toggleClass("owl-center", this.settings.center);
+   if (this.settings.loop) {
+     if (this._items.length < this.settings.items) {
+       this.settings.loop = false;
+     }
+   }
+   if (this.settings.autoWidth) {
+     this.settings.stagePadding = false;
+     this.settings.merge = false;
+   }
+ };
+ self.prototype.prepare = function(data) {
+   var event = this.trigger("prepare", {
+     content : data
+   });
+   return event.data || (event.data = $("<" + this.settings.itemElement + "/>").addClass(this.settings.itemClass).append(data)), this.trigger("prepared", {
+     content : event.data
+   }), event.data;
+ };
+ self.prototype.update = function() {
+   var i = 0;
+   var l = this._pipe.length;
+   var filter = $.proxy(function(timeoutKey) {
+     return this[timeoutKey];
+   }, this._invalidated);
+   var memory = {};
+   for (;l > i;) {
+     if (this._invalidated.all || $.grep(this._pipe[i].filter, filter).length > 0) {
+       this._pipe[i].run(memory);
+     }
+     i++;
+   }
+   this._invalidated = {};
+ };
+ self.prototype.width = function(feature) {
+   switch(feature = feature || self.Width.Default) {
+     case self.Width.Inner:
+     ;
+     case self.Width.Outer:
+       return this._width;
+     default:
+       return this._width - 2 * this.settings.stagePadding + this.settings.margin;
+   }
+ };
+ self.prototype.refresh = function() {
+   if (0 === this._items.length) {
+     return false;
+   }
+   (new Date).getTime();
+   this.trigger("refresh");
+   this.setup();
+   this.optionsLogic();
+   this.$stage.addClass("owl-refresh");
+   this.update();
+   this.$stage.removeClass("owl-refresh");
+   this.state.orientation = win.orientation;
+   this.watchVisibility();
+   this.trigger("refreshed");
+ };
+ self.prototype.eventsCall = function() {
+   this.e._onDragStart = $.proxy(function(e) {
+     this.onDragStart(e);
+   }, this);
+   this.e._onDragMove = $.proxy(function(node) {
+     this.onDragMove(node);
+   }, this);
+   this.e._onDragEnd = $.proxy(function(walkers) {
+     this.onDragEnd(walkers);
+   }, this);
+   this.e._onResize = $.proxy(function(e) {
+     this.onResize(e);
+   }, this);
+   this.e._transitionEnd = $.proxy(function(e) {
+     this.transitionEnd(e);
+   }, this);
+   this.e._preventClick = $.proxy(function(completeEvent) {
+     this.preventClick(completeEvent);
+   }, this);
+ };
+ self.prototype.onThrottledResize = function() {
+   win.clearTimeout(this.resizeTimer);
+   this.resizeTimer = win.setTimeout(this.e._onResize, this.settings.responsiveRefreshRate);
+ };
+ self.prototype.onResize = function() {
+   return this._items.length ? this._width === this.$element.width() ? false : this.trigger("resize").isDefaultPrevented() ? false : (this._width = this.$element.width(), this.invalidate("width"), this.refresh(), void this.trigger("resized")) : false;
+ };
+ self.prototype.eventsRouter = function(e) {
+   var eventType = e.type;
+   if ("mousedown" === eventType || "touchstart" === eventType) {
+     this.onDragStart(e);
+   } else {
+     if ("mousemove" === eventType || "touchmove" === eventType) {
+       this.onDragMove(e);
+     } else {
+       if ("mouseup" === eventType || "touchend" === eventType) {
+         this.onDragEnd(e);
+       } else {
+         if ("touchcancel" === eventType) {
+           this.onDragEnd(e);
+         }
+       }
+     }
+   }
+ };
+ self.prototype.internalEvents = function() {
+   var c = (isTouch(), isMSPointer());
+   if (this.settings.mouseDrag) {
+     this.$stage.on("mousedown", $.proxy(function(completeEvent) {
+       this.eventsRouter(completeEvent);
+     }, this));
+     this.$stage.on("dragstart", function() {
+       return false;
+     });
+     this.$stage.get(0).onselectstart = function() {
+       return false;
+     };
+   } else {
+     this.$element.addClass("owl-text-select-on");
+   }
+   if (this.settings.touchDrag) {
+     if (!c) {
+       this.$stage.on("touchstart touchcancel", $.proxy(function(completeEvent) {
+         this.eventsRouter(completeEvent);
+       }, this));
+     }
+   }
+   if (this.transitionEndVendor) {
+     this.on(this.$stage.get(0), this.transitionEndVendor, this.e._transitionEnd, false);
+   }
+   if (this.settings.responsive !== false) {
+     this.on(win, "resize", $.proxy(this.onThrottledResize, this));
+   }
+ };
+ self.prototype.onDragStart = function(event) {
+   var e;
+   var x;
+   var y;
+   var offsetX;
+   if (e = event.originalEvent || (event || win.event), 3 === e.which || this.state.isTouch) {
+     return false;
+   }
+   if ("mousedown" === e.type && this.$stage.addClass("owl-grab"), this.trigger("drag"), this.drag.startTime = (new Date).getTime(), this.speed(0), this.state.isTouch = true, this.state.isScrolling = false, this.state.isSwiping = false, this.drag.distance = 0, x = getTouches(e).x, y = getTouches(e).y, this.drag.offsetX = this.$stage.position().left, this.drag.offsetY = this.$stage.position().top, this.settings.rtl && (this.drag.offsetX = this.$stage.position().left + this.$stage.width() - this.width() +
+   this.settings.margin), this.state.inMotion && this.support3d) {
+     offsetX = this.getTransformProperty();
+     this.drag.offsetX = offsetX;
+     this.animate(offsetX);
+     this.state.inMotion = true;
+   } else {
+     if (this.state.inMotion && !this.support3d) {
+       return this.state.inMotion = false, false;
+     }
+   }
+   this.drag.startX = x - this.drag.offsetX;
+   this.drag.startY = y - this.drag.offsetY;
+   this.drag.start = x - this.drag.startX;
+   this.drag.targetEl = e.target || e.srcElement;
+   this.drag.updatedX = this.drag.start;
+   if ("IMG" === this.drag.targetEl.tagName || "A" === this.drag.targetEl.tagName) {
+     this.drag.targetEl.draggable = false;
+   }
+   $(doc).on("mousemove.owl.dragEvents mouseup.owl.dragEvents touchmove.owl.dragEvents touchend.owl.dragEvents", $.proxy(function(completeEvent) {
+     this.eventsRouter(completeEvent);
+   }, this));
+ };
+ self.prototype.onDragMove = function(event) {
+   var e;
+   var currentX;
+   var currentY;
+   var beforeN;
+   var slice;
+   var len;
+   if (this.state.isTouch) {
+     if (!this.state.isScrolling) {
+       e = event.originalEvent || (event || win.event);
+       currentX = getTouches(e).x;
+       currentY = getTouches(e).y;
+       this.drag.currentX = currentX - this.drag.startX;
+       this.drag.currentY = currentY - this.drag.startY;
+       this.drag.distance = this.drag.currentX - this.drag.offsetX;
+       if (this.drag.distance < 0) {
+         this.state.direction = this.settings.rtl ? "right" : "left";
+       } else {
+         if (this.drag.distance > 0) {
+           this.state.direction = this.settings.rtl ? "left" : "right";
+         }
+       }
+       if (this.settings.loop) {
+         if (this.op(this.drag.currentX, ">", this.coordinates(this.minimum())) && "right" === this.state.direction) {
+           this.drag.currentX -= (this.settings.center && this.coordinates(0)) - this.coordinates(this._items.length);
+         } else {
+           if (this.op(this.drag.currentX, "<", this.coordinates(this.maximum()))) {
+             if ("left" === this.state.direction) {
+               this.drag.currentX += (this.settings.center && this.coordinates(0)) - this.coordinates(this._items.length);
+             }
+           }
+         }
+       } else {
+         beforeN = this.coordinates(this.settings.rtl ? this.maximum() : this.minimum());
+         slice = this.coordinates(this.settings.rtl ? this.minimum() : this.maximum());
+         len = this.settings.pullDrag ? this.drag.distance / 5 : 0;
+         this.drag.currentX = Math.max(Math.min(this.drag.currentX, beforeN + len), slice + len);
+       }
+       if (this.drag.distance > 8 || this.drag.distance < -8) {
+         if (e.preventDefault !== undef) {
+           e.preventDefault();
+         } else {
+           e.returnValue = false;
+         }
+         this.state.isSwiping = true;
+       }
+       this.drag.updatedX = this.drag.currentX;
+       if (this.drag.currentY > 16 || this.drag.currentY < -16) {
+         if (this.state.isSwiping === false) {
+           this.state.isScrolling = true;
+           this.drag.updatedX = this.drag.start;
+         }
+       }
+       this.animate(this.drag.updatedX);
+     }
+   }
+ };
+ self.prototype.onDragEnd = function(obj) {
+   var minuteOffset;
+   var hourOffset;
+   var udataCur;
+   if (this.state.isTouch) {
+     if ("mouseup" === obj.type && this.$stage.removeClass("owl-grab"), this.trigger("dragged"), this.drag.targetEl.removeAttribute("draggable"), this.state.isTouch = false, this.state.isScrolling = false, this.state.isSwiping = false, 0 === this.drag.distance && this.state.inMotion !== true) {
+       return this.state.inMotion = false, false;
+     }
+     this.drag.endTime = (new Date).getTime();
+     minuteOffset = this.drag.endTime - this.drag.startTime;
+     hourOffset = Math.abs(this.drag.distance);
+     if (hourOffset > 3 || minuteOffset > 300) {
+       this.removeClick(this.drag.targetEl);
+     }
+     udataCur = this.closest(this.drag.updatedX);
+     this.speed(this.settings.dragEndSpeed || this.settings.smartSpeed);
+     this.current(udataCur);
+     this.invalidate("position");
+     this.update();
+     if (!this.settings.pullDrag) {
+       if (!(this.drag.updatedX !== this.coordinates(udataCur))) {
+         this.transitionEnd();
+       }
+     }
+     this.drag.distance = 0;
+     $(doc).off(".owl.dragEvents");
+   }
+ };
+ self.prototype.removeClick = function($window) {
+   this.drag.targetEl = $window;
+   $($window).on("click.preventClick", this.e._preventClick);
+   win.setTimeout(function() {
+     $($window).off("click.preventClick");
+   }, 300);
+ };
+ self.prototype.preventClick = function(e) {
+   if (e.preventDefault) {
+     e.preventDefault();
+   } else {
+     e.returnValue = false;
+   }
+   if (e.stopPropagation) {
+     e.stopPropagation();
+   }
+   $(e.target).off("click.preventClick");
+ };
+ self.prototype.getTransformProperty = function() {
+   var match;
+   var territory;
+   return match = win.getComputedStyle(this.$stage.get(0), null).getPropertyValue(this.vendorName + "transform"), match = match.replace(/matrix(3d)?\(|\)/g, "").split(","), territory = 16 === match.length, territory !== true ? match[4] : match[12];
+ };
+ self.prototype.closest = function(b) {
+   var g = -1;
+   var left = 30;
+   var width = this.width();
+   var self = this.coordinates();
+   return this.settings.freeDrag || $.each(self, $.proxy(function(v, right) {
+     return b > right - left && right + left > b ? g = v : this.op(b, "<", right) && (this.op(b, ">", self[v + 1] || right - width) && (g = "left" === this.state.direction ? v + 1 : v)), -1 === g;
+   }, this)), this.settings.loop || (this.op(b, ">", self[this.minimum()]) ? g = b = this.minimum() : this.op(b, "<", self[this.maximum()]) && (g = b = this.maximum())), g;
+ };
+ self.prototype.animate = function(x) {
+   this.trigger("translate");
+   this.state.inMotion = this.speed() > 0;
+   if (this.support3d) {
+     this.$stage.css({
+       transform : "translate3d(" + x + "px,0px, 0px)",
+       transition : this.speed() / 1E3 + "s"
+     });
+   } else {
+     if (this.state.isTouch) {
+       this.$stage.css({
+         left : x + "px"
+       });
+     } else {
+       this.$stage.animate({
+         left : x
+       }, this.speed() / 1E3, this.settings.fallbackEasing, $.proxy(function() {
+         if (this.state.inMotion) {
+           this.transitionEnd();
+         }
+       }, this));
+     }
+   }
+ };
+ self.prototype.current = function(value) {
+   if (value === undef) {
+     return this._current;
+   }
+   if (0 === this._items.length) {
+     return undef;
+   }
+   if (value = this.normalize(value), this._current !== value) {
+     var e = this.trigger("change", {
+       property : {
+         name : "position",
+         value : value
+       }
+     });
+     if (e.data !== undef) {
+       value = this.normalize(e.data);
+     }
+     this._current = value;
+     this.invalidate("position");
+     this.trigger("changed", {
+       property : {
+         name : "position",
+         value : this._current
+       }
+     });
+   }
+   return this._current;
+ };
+ self.prototype.invalidate = function(value) {
+   this._invalidated[value] = true;
+ };
+ self.prototype.reset = function(value) {
+   value = this.normalize(value);
+   if (value !== undef) {
+     this._speed = 0;
+     this._current = value;
+     this.suppress(["translate", "translated"]);
+     this.animate(this.coordinates(value));
+     this.release(["translate", "translated"]);
+   }
+ };
+ self.prototype.normalize = function(value, deepDataAndEvents) {
+   var range = deepDataAndEvents ? this._items.length : this._items.length + this._clones.length;
+   return!$.isNumeric(value) || 1 > range ? undef : value = this._clones.length ? (value % range + range) % range : Math.max(this.minimum(deepDataAndEvents), Math.min(this.maximum(deepDataAndEvents), value));
+ };
+ self.prototype.relative = function(value) {
+   return value = this.normalize(value), value -= this._clones.length / 2, this.normalize(value, true);
+ };
+ self.prototype.maximum = function(deepDataAndEvents) {
+   var max;
+   var c;
+   var result0;
+   var pos0 = 0;
+   var o = this.settings;
+   if (deepDataAndEvents) {
+     return this._items.length - 1;
+   }
+   if (!o.loop && o.center) {
+     max = this._items.length - 1;
+   } else {
+     if (o.loop || o.center) {
+       if (o.loop || o.center) {
+         max = this._items.length + o.items;
+       } else {
+         if (!o.autoWidth && !o.merge) {
+           throw "Can not detect maximum absolute position.";
+         }
+         revert = o.rtl ? 1 : -1;
+         c = this.$stage.width() - this.$element.width();
+         for (;(result0 = this.coordinates(pos0)) && !(result0 * revert >= c);) {
+           max = ++pos0;
+         }
+       }
+     } else {
+       max = this._items.length - o.items;
+     }
+   }
+   return max;
+ };
+ self.prototype.minimum = function(deepDataAndEvents) {
+   return deepDataAndEvents ? 0 : this._clones.length / 2;
+ };
+ self.prototype.items = function(data) {
+   return data === undef ? this._items.slice() : (data = this.normalize(data, true), this._items[data]);
+ };
+ self.prototype.mergers = function(data) {
+   return data === undef ? this._mergers.slice() : (data = this.normalize(data, true), this._mergers[data]);
+ };
+ self.prototype.clones = function(b) {
+   var start = this._clones.length / 2;
+   var end = start + this._items.length;
+   var clone = function(deepDataAndEvents) {
+     return deepDataAndEvents % 2 === 0 ? end + deepDataAndEvents / 2 : start - (deepDataAndEvents + 1) / 2;
+   };
+   return b === undef ? $.map(this._clones, function(dataAndEvents, deepDataAndEvents) {
+     return clone(deepDataAndEvents);
+   }) : $.map(this._clones, function(a, deepDataAndEvents) {
+     return a === b ? clone(deepDataAndEvents) : null;
+   });
+ };
+ self.prototype.speed = function(recurring) {
+   return recurring !== undef && (this._speed = recurring), this._speed;
+ };
+ self.prototype.coordinates = function(offset) {
+   var object = null;
+   return offset === undef ? $.map(this._coordinates, $.proxy(function(dataAndEvents, arg2) {
+     return this.coordinates(arg2);
+   }, this)) : (this.settings.center ? (object = this._coordinates[offset], object += (this.width() - object + (this._coordinates[offset - 1] || 0)) / 2 * (this.settings.rtl ? -1 : 1)) : object = this._coordinates[offset - 1] || 0, object);
+ };
+ self.prototype.duration = function(s, val, n) {
+   return Math.min(Math.max(Math.abs(val - s), 1), 6) * Math.abs(n || this.settings.smartSpeed);
+ };
+ self.prototype.to = function(key, duration) {
+   if (this.settings.loop) {
+     var y = key - this.relative(this.current());
+     var x = this.current();
+     var len = this.current();
+     var i = this.current() + y;
+     var c1 = 0 > len - i ? true : false;
+     var m = this._clones.length + this._items.length;
+     if (i < this.settings.items && c1 === false) {
+       x = len + this._items.length;
+       this.reset(x);
+     } else {
+       if (i >= m - this.settings.items) {
+         if (c1 === true) {
+           x = len - this._items.length;
+           this.reset(x);
+         }
+       }
+     }
+     win.clearTimeout(this.e._goToLoop);
+     this.e._goToLoop = win.setTimeout($.proxy(function() {
+       this.speed(this.duration(this.current(), x + y, duration));
+       this.current(x + y);
+       this.update();
+     }, this), 30);
+   } else {
+     this.speed(this.duration(this.current(), key, duration));
+     this.current(key);
+     this.update();
+   }
+ };
+ self.prototype.next = function(event) {
+   event = event || false;
+   this.to(this.relative(this.current()) + 1, event);
+ };
+ self.prototype.prev = function(event) {
+   event = event || false;
+   this.to(this.relative(this.current()) - 1, event);
+ };
+ self.prototype.transitionEnd = function(e) {
+   return e !== undef && (e.stopPropagation(), (e.target || (e.srcElement || e.originalTarget)) !== this.$stage.get(0)) ? false : (this.state.inMotion = false, void this.trigger("translated"));
+ };
+ self.prototype.viewport = function() {
+   var width;
+   if (this.options.responsiveBaseElement !== win) {
+     width = $(this.options.responsiveBaseElement).width();
+   } else {
+     if (win.innerWidth) {
+       width = win.innerWidth;
+     } else {
+       if (!doc.documentElement || !doc.documentElement.clientWidth) {
+         throw "Can not detect viewport width.";
+       }
+       width = doc.documentElement.clientWidth;
+     }
+   }
+   return width;
+ };
+ self.prototype.replace = function(el) {
+   this.$stage.empty();
+   this._items = [];
+   if (el) {
+     el = el instanceof jQuery ? el : $(el);
+   }
+   if (this.settings.nestedItemSelector) {
+     el = el.find("." + this.settings.nestedItemSelector);
+   }
+   el.filter(function() {
+     return 1 === this.nodeType;
+   }).each($.proxy(function(dataAndEvents, nodes) {
+     nodes = this.prepare(nodes);
+     this.$stage.append(nodes);
+     this._items.push(nodes);
+     this._mergers.push(1 * nodes.find("[data-merge]").andSelf("[data-merge]").attr("data-merge") || 1);
+   }, this));
+   this.reset($.isNumeric(this.settings.startPosition) ? this.settings.startPosition : 0);
+   this.invalidate("items");
+ };
+ self.prototype.add = function(item, i) {
+   i = i === undef ? this._items.length : this.normalize(i, true);
+   this.trigger("add", {
+     content : item,
+     position : i
+   });
+   if (0 === this._items.length || i === this._items.length) {
+     this.$stage.append(item);
+     this._items.push(item);
+     this._mergers.push(1 * item.find("[data-merge]").andSelf("[data-merge]").attr("data-merge") || 1);
+   } else {
+     this._items[i].before(item);
+     this._items.splice(i, 0, item);
+     this._mergers.splice(i, 0, 1 * item.find("[data-merge]").andSelf("[data-merge]").attr("data-merge") || 1);
+   }
+   this.invalidate("items");
+   this.trigger("added", {
+     content : item,
+     position : i
+   });
+ };
+ self.prototype.remove = function(index) {
+   index = this.normalize(index, true);
+   if (index !== undef) {
+     this.trigger("remove", {
+       content : this._items[index],
+       position : index
+     });
+     this._items[index].remove();
+     this._items.splice(index, 1);
+     this._mergers.splice(index, 1);
+     this.invalidate("items");
+     this.trigger("removed", {
+       content : null,
+       position : index
+     });
+   }
+ };
+ self.prototype.addTriggerableEvents = function() {
+   var onErrorFnPrev = $.proxy(function(matcherFunction, dataAndEvents) {
+     return $.proxy(function(mouseover) {
+       if (mouseover.relatedTarget !== this) {
+         this.suppress([dataAndEvents]);
+         matcherFunction.apply(this, [].slice.call(arguments, 1));
+         this.release([dataAndEvents]);
+       }
+     }, this);
+   }, this);
+   $.each({
+     next : this.next,
+     prev : this.prev,
+     to : this.to,
+     destroy : this.destroy,
+     refresh : this.refresh,
+     replace : this.replace,
+     add : this.add,
+     remove : this.remove
+   }, $.proxy(function(openEvent, error) {
+     this.$element.on(openEvent + ".owl.carousel", onErrorFnPrev(error, openEvent + ".owl.carousel"));
+   }, this));
+ };
+ self.prototype.watchVisibility = function() {
+   function close(dropdown) {
+     return dropdown.offsetWidth > 0 && dropdown.offsetHeight > 0;
+   }
+   function tick() {
+     if (close(this.$element.get(0))) {
+       this.$element.removeClass("owl-hidden");
+       this.refresh();
+       win.clearInterval(this.e._checkVisibile);
+     }
+   }
+   if (!close(this.$element.get(0))) {
+     this.$element.addClass("owl-hidden");
+     win.clearInterval(this.e._checkVisibile);
+     this.e._checkVisibile = win.setInterval($.proxy(tick, this), 500);
+   }
+ };
+ self.prototype.preloadAutoWidthImages = function(arr) {
+   var completed;
+   var module;
+   var $img;
+   var img;
+   completed = 0;
+   module = this;
+   arr.each(function(dataAndEvents, selector) {
+     $img = $(selector);
+     img = new Image;
+     img.onload = function() {
+       completed++;
+       $img.attr("src", img.src);
+       $img.css("opacity", 1);
+       if (completed >= arr.length) {
+         module.state.imagesLoaded = true;
+         module.initialize();
+       }
+     };
+     img.src = $img.attr("src") || ($img.attr("data-src") || $img.attr("data-src-retina"));
+   });
+ };
+ self.prototype.destroy = function() {
+   if (this.$element.hasClass(this.settings.themeClass)) {
+     this.$element.removeClass(this.settings.themeClass);
+   }
+   if (this.settings.responsive !== false) {
+     $(win).off("resize.owl.carousel");
+   }
+   if (this.transitionEndVendor) {
+     this.off(this.$stage.get(0), this.transitionEndVendor, this.e._transitionEnd);
+   }
+   var i;
+   for (i in this._plugins) {
+     this._plugins[i].destroy();
+   }
+   if (this.settings.mouseDrag || this.settings.touchDrag) {
+     this.$stage.off("mousedown touchstart touchcancel");
+     $(doc).off(".owl.dragEvents");
+     this.$stage.get(0).onselectstart = function() {
+     };
+     this.$stage.off("dragstart", function() {
+       return false;
+     });
+   }
+   this.$element.off(".owl");
+   this.$stage.children(".cloned").remove();
+   this.e = null;
+   this.$element.removeData("owlCarousel");
+   this.$stage.children().contents().unwrap();
+   this.$stage.children().unwrap();
+   this.$stage.unwrap();
+ };
+ self.prototype.op = function(x, lhs, y) {
+   var rtl = this.settings.rtl;
+   switch(lhs) {
+     case "<":
+       return rtl ? x > y : y > x;
+     case ">":
+       return rtl ? y > x : x > y;
+     case ">=":
+       return rtl ? y >= x : x >= y;
+     case "<=":
+       return rtl ? x >= y : y >= x;
+   }
+ };
+ self.prototype.on = function(target, type, callback, capture) {
+   if (target.addEventListener) {
+     target.addEventListener(type, callback, capture);
+   } else {
+     if (target.attachEvent) {
+       target.attachEvent("on" + type, callback);
+     }
+   }
+ };
+ self.prototype.off = function(el, event, fn, capture) {
+   if (el.removeEventListener) {
+     el.removeEventListener(event, fn, capture);
+   } else {
+     if (el.detachEvent) {
+       el.detachEvent("on" + event, fn);
+     }
+   }
+ };
+ self.prototype.trigger = function(name, expectedHashCode, type) {
+   var op = {
+     item : {
+       count : this._items.length,
+       index : this.current()
+     }
+   };
+   var handlerName = $.camelCase($.grep(["on", name, type], function(dataAndEvents) {
+     return dataAndEvents;
+   }).join("-").toLowerCase());
+   var e = $.Event([name, "owl", type || "carousel"].join(".").toLowerCase(), $.extend({
+     relatedTarget : this
+   }, op, expectedHashCode));
+   return this._supress[name] || ($.each(this._plugins, function(dataAndEvents, m) {
+     if (m.onTrigger) {
+       m.onTrigger(e);
+     }
+   }), this.$element.trigger(e), this.settings && ("function" == typeof this.settings[handlerName] && this.settings[handlerName].apply(this, e))), e;
+ };
+ self.prototype.suppress = function(eventName) {
+   $.each(eventName, $.proxy(function(dataAndEvents, timeoutKey) {
+     this._supress[timeoutKey] = true;
+   }, this));
+ };
+ self.prototype.release = function(marker) {
+   $.each(marker, $.proxy(function(dataAndEvents, timeoutKey) {
+     delete this._supress[timeoutKey];
+   }, this));
+ };
+ self.prototype.browserSupport = function() {
+   if (this.support3d = testAll(), this.support3d) {
+     this.transformVendor = checkCapabilities();
+     var eventNames = ["transitionend", "webkitTransitionEnd", "transitionend", "oTransitionEnd"];
+     this.transitionEndVendor = eventNames[setEventPrefix()];
+     this.vendorName = this.transformVendor.replace(/Transform/i, "");
+     this.vendorName = "" !== this.vendorName ? "-" + this.vendorName.toLowerCase() + "-" : "";
+   }
+   this.state.orientation = win.orientation;
+ };
+ $.fn.owlCarousel = function(options) {
+   return this.each(function() {
+     if (!$(this).data("owlCarousel")) {
+       $(this).data("owlCarousel", new self(this, options));
+     }
+   });
+ };
+ $.fn.owlCarousel.Constructor = self;
+}(window.Zepto || window.jQuery, window, document), function($, w) {
+ var postLink = function(attrs) {
+   this._core = attrs;
+   this._loaded = [];
+   this._handlers = {
+     "initialized.owl.carousel change.owl.carousel" : $.proxy(function(event) {
+       if (event.namespace && (this._core.settings && (this._core.settings.lazyLoad && (event.property && "position" == event.property.name || "initialized" == event.type)))) {
+         var settings = this._core.settings;
+         var length = settings.center && Math.ceil(settings.items / 2) || settings.items;
+         var index = settings.center && -1 * length || 0;
+         var udataCur = (event.property && event.property.value || this._core.current()) + index;
+         var cnl = this._core.clones().length;
+         var clean = $.proxy(function(dataAndEvents, next) {
+           this.load(next);
+         }, this);
+         for (;index++ < length;) {
+           this.load(cnl / 2 + this._core.relative(udataCur));
+           if (cnl) {
+             $.each(this._core.clones(this._core.relative(udataCur++)), clean);
+           }
+         }
+       }
+     }, this)
+   };
+   this._core.options = $.extend({}, postLink.Defaults, this._core.options);
+   this._core.$element.on(this._handlers);
+ };
+ postLink.Defaults = {
+   lazyLoad : false
+ };
+ postLink.prototype.load = function(index) {
+   var value = this._core.$stage.children().eq(index);
+   var attrNames = value && value.find(".owl-lazy");
+   if (!!attrNames) {
+     if (!($.inArray(value.get(0), this._loaded) > -1)) {
+       attrNames.each($.proxy(function(dataAndEvents, tagName) {
+         var img;
+         var el = $(tagName);
+         var dataUrl = w.devicePixelRatio > 1 && el.attr("data-src-retina") || el.attr("data-src");
+         this._core.trigger("load", {
+           element : el,
+           url : dataUrl
+         }, "lazy");
+         if (el.is("img")) {
+           el.one("load.owl.lazy", $.proxy(function() {
+             el.css("opacity", 1);
+             this._core.trigger("loaded", {
+               element : el,
+               url : dataUrl
+             }, "lazy");
+           }, this)).attr("src", dataUrl);
+         } else {
+           img = new Image;
+           img.onload = $.proxy(function() {
+             el.css({
+               "background-image" : "url(" + dataUrl + ")",
+               opacity : "1"
+             });
+             this._core.trigger("loaded", {
+               element : el,
+               url : dataUrl
+             }, "lazy");
+           }, this);
+           img.src = dataUrl;
+         }
+       }, this));
+       this._loaded.push(value.get(0));
+     }
+   }
+ };
+ postLink.prototype.destroy = function() {
+   var event;
+   var unlock;
+   for (event in this.handlers) {
+     this._core.$element.off(event, this.handlers[event]);
+   }
+   for (unlock in Object.getOwnPropertyNames(this)) {
+     if ("function" != typeof this[unlock]) {
+       this[unlock] = null;
+     }
+   }
+ };
+ $.fn.owlCarousel.Constructor.Plugins.Lazy = postLink;
+}(window.Zepto || window.jQuery, window, document), function($) {
+ var render = function(rows) {
+   this._core = rows;
+   this._handlers = {
+     "initialized.owl.carousel" : $.proxy(function() {
+       if (this._core.settings.autoHeight) {
+         this.update();
+       }
+     }, this),
+     "changed.owl.carousel" : $.proxy(function(pair) {
+       if (this._core.settings.autoHeight) {
+         if ("position" == pair.property.name) {
+           this.update();
+         }
+       }
+     }, this),
+     "loaded.owl.lazy" : $.proxy(function(c) {
+       if (this._core.settings.autoHeight) {
+         if (c.element.closest("." + this._core.settings.itemClass) === this._core.$stage.children().eq(this._core.current())) {
+           this.update();
+         }
+       }
+     }, this)
+   };
+   this._core.options = $.extend({}, render.Defaults, this._core.options);
+   this._core.$element.on(this._handlers);
+ };
+ render.Defaults = {
+   autoHeight : false,
+   autoHeightClass : "owl-height"
+ };
+ render.prototype.update = function() {
+   this._core.$stage.parent().height(this._core.$stage.children().eq(this._core.current()).height()).addClass(this._core.settings.autoHeightClass);
+ };
+ render.prototype.destroy = function() {
+   var event;
+   var unlock;
+   for (event in this._handlers) {
+     this._core.$element.off(event, this._handlers[event]);
+   }
+   for (unlock in Object.getOwnPropertyNames(this)) {
+     if ("function" != typeof this[unlock]) {
+       this[unlock] = null;
+     }
+   }
+ };
+ $.fn.owlCarousel.Constructor.Plugins.AutoHeight = render;
+}(window.Zepto || window.jQuery, window, document), function($, root, d) {
+ var fn = function(range) {
+   this._core = range;
+   this._videos = {};
+   this._playing = null;
+   this._fullscreen = false;
+   this._handlers = {
+     "resize.owl.carousel" : $.proxy(function(types) {
+       if (this._core.settings.video) {
+         if (!this.isInFullScreen()) {
+           types.preventDefault();
+         }
+       }
+     }, this),
+     "refresh.owl.carousel changed.owl.carousel" : $.proxy(function() {
+       if (this._playing) {
+         this.stop();
+       }
+     }, this),
+     "prepared.owl.carousel" : $.proxy(function(ui) {
+       var content = $(ui.content).find(".owl-video");
+       if (content.length) {
+         content.css("display", "none");
+         this.fetch(content, $(ui.content));
+       }
+     }, this)
+   };
+   this._core.options = $.extend({}, fn.Defaults, this._core.options);
+   this._core.$element.on(this._handlers);
+   this._core.$element.on("click.owl.video", ".owl-video-play-icon", $.proxy(function(name) {
+     this.play(name);
+   }, this));
+ };
+ fn.Defaults = {
+   video : false,
+   videoHeight : false,
+   videoWidth : false
+ };
+ fn.prototype.fetch = function(element, options) {
+   var type = element.attr("data-vimeo-id") ? "vimeo" : "youtube";
+   var tag = element.attr("data-vimeo-id") || element.attr("data-youtube-id");
+   var w = element.attr("data-width") || this._core.settings.videoWidth;
+   var dialogHeight = element.attr("data-height") || this._core.settings.videoHeight;
+   var name = element.attr("href");
+   if (!name) {
+     throw new Error("Missing video URL.");
+   }
+   if (tag = name.match(/(http:|https:|)\/\/(player.|www.)?(vimeo\.com|youtu(be\.com|\.be|be\.googleapis\.com))\/(video\/|embed\/|watch\?v=|v\/)?([A-Za-z0-9._%-]*)(\&\S+)?/), tag[3].indexOf("youtu") > -1) {
+     type = "youtube";
+   } else {
+     if (!(tag[3].indexOf("vimeo") > -1)) {
+       throw new Error("Video URL not supported.");
+     }
+     type = "vimeo";
+   }
+   tag = tag[6];
+   this._videos[name] = {
+     type : type,
+     id : tag,
+     width : w,
+     height : dialogHeight
+   };
+   options.attr("data-video", name);
+   this.thumbnail(element, this._videos[name]);
+ };
+ fn.prototype.thumbnail = function(element, file) {
+   var tplElCompiled;
+   var clone;
+   var expectationResult;
+   var failureMessage = file.width && file.height ? 'style="width:' + file.width + "px;height:" + file.height + 'px;"' : "";
+   var $img = element.find("img");
+   var srcAttr = "src";
+   var optsData = "";
+   var settings = this._core.settings;
+   var after = function(result) {
+     clone = '<div class="owl-video-play-icon"></div>';
+     tplElCompiled = settings.lazyLoad ? '<div class="owl-video-tn ' + optsData + '" ' + srcAttr + '="' + result + '"></div>' : '<div class="owl-video-tn" style="opacity:1;background-image:url(' + result + ')"></div>';
+     element.after(tplElCompiled);
+     element.after(clone);
+   };
+   return element.wrap('<div class="owl-video-wrapper"' + failureMessage + "></div>"), this._core.settings.lazyLoad && (srcAttr = "data-src", optsData = "owl-lazy"), $img.length ? (after($img.attr(srcAttr)), $img.remove(), false) : void("youtube" === file.type ? (expectationResult = "http://img.youtube.com/vi/" + file.id + "/hqdefault.jpg", after(expectationResult)) : "vimeo" === file.type && $.ajax({
+     type : "GET",
+     url : "http://vimeo.com/api/v2/video/" + file.id + ".json",
+     jsonp : "callback",
+     dataType : "jsonp",
+     success : function(json) {
+       expectationResult = json[0].thumbnail_large;
+       after(expectationResult);
+     }
+   }));
+ };
+ fn.prototype.stop = function() {
+   this._core.trigger("stop", null, "video");
+   this._playing.find(".owl-video-frame").remove();
+   this._playing.removeClass("owl-video-playing");
+   this._playing = null;
+ };
+ fn.prototype.play = function(event) {
+   this._core.trigger("play", null, "video");
+   if (this._playing) {
+     this.stop();
+   }
+   var c;
+   var file;
+   var current = $(event.target || event.srcElement);
+   var btn = current.closest("." + this._core.settings.itemClass);
+   var testNode = this._videos[btn.attr("data-video")];
+   var h = testNode.width || "100%";
+   var i = testNode.height || this._core.$stage.height();
+   if ("youtube" === testNode.type) {
+     c = '<iframe width="' + h + '" height="' + i + '" src="http://www.youtube.com/embed/' + testNode.id + "?autoplay=1&v=" + testNode.id + '" frameborder="0" allowfullscreen></iframe>';
+   } else {
+     if ("vimeo" === testNode.type) {
+       c = '<iframe src="http://player.vimeo.com/video/' + testNode.id + '?autoplay=1" width="' + h + '" height="' + i + '" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>';
+     }
+   }
+   btn.addClass("owl-video-playing");
+   this._playing = btn;
+   file = $('<div style="height:' + i + "px; width:" + h + 'px" class="owl-video-frame">' + c + "</div>");
+   current.after(file);
+ };
+ fn.prototype.isInFullScreen = function() {
+   var toggle = d.fullscreenElement || (d.mozFullScreenElement || d.webkitFullscreenElement);
+   return toggle && ($(toggle).parent().hasClass("owl-video-frame") && (this._core.speed(0), this._fullscreen = true)), toggle && (this._fullscreen && this._playing) ? false : this._fullscreen ? (this._fullscreen = false, false) : this._playing && this._core.state.orientation !== root.orientation ? (this._core.state.orientation = root.orientation, false) : true;
+ };
+ fn.prototype.destroy = function() {
+   var event;
+   var unlock;
+   this._core.$element.off("click.owl.video");
+   for (event in this._handlers) {
+     this._core.$element.off(event, this._handlers[event]);
+   }
+   for (unlock in Object.getOwnPropertyNames(this)) {
+     if ("function" != typeof this[unlock]) {
+       this[unlock] = null;
+     }
+   }
+ };
+ $.fn.owlCarousel.Constructor.Plugins.Video = fn;
+}(window.Zepto || window.jQuery, window, document), function($, exports, d, node) {
+ var init = function(core) {
+   this.core = core;
+   this.core.options = $.extend({}, init.Defaults, this.core.options);
+   this.swapping = true;
+   this.previous = node;
+   this.next = node;
+   this.handlers = {
+     "change.owl.carousel" : $.proxy(function(event) {
+       if ("position" == event.property.name) {
+         this.previous = this.core.current();
+         this.next = event.property.value;
+       }
+     }, this),
+     "drag.owl.carousel dragged.owl.carousel translated.owl.carousel" : $.proxy(function(statement) {
+       this.swapping = "translated" == statement.type;
+     }, this),
+     "translate.owl.carousel" : $.proxy(function() {
+       if (this.swapping) {
+         if (this.core.options.animateOut || this.core.options.animateIn) {
+           this.swap();
+         }
+       }
+     }, this)
+   };
+   this.core.$element.on(this.handlers);
+ };
+ init.Defaults = {
+   animateOut : false,
+   animateIn : false
+ };
+ init.prototype.swap = function() {
+   if (1 === this.core.settings.items && this.core.support3d) {
+     this.core.speed(0);
+     var originalLeft_;
+     var oid = $.proxy(this.clear, this);
+     var section = this.core.$stage.children().eq(this.previous);
+     var divSpan = this.core.$stage.children().eq(this.next);
+     var activeClassName = this.core.settings.animateIn;
+     var css = this.core.settings.animateOut;
+     if (this.core.current() !== this.previous) {
+       if (css) {
+         originalLeft_ = this.core.coordinates(this.previous) - this.core.coordinates(this.next);
+         section.css({
+           left : originalLeft_ + "px"
+         }).addClass("animated owl-animated-out").addClass(css).one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", oid);
+       }
+       if (activeClassName) {
+         divSpan.addClass("animated owl-animated-in").addClass(activeClassName).one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", oid);
+       }
+     }
+   }
+ };
+ init.prototype.clear = function(event) {
+   $(event.target).css({
+     left : ""
+   }).removeClass("animated owl-animated-out owl-animated-in").removeClass(this.core.settings.animateIn).removeClass(this.core.settings.animateOut);
+   this.core.transitionEnd();
+ };
+ init.prototype.destroy = function() {
+   var event;
+   var unlock;
+   for (event in this.handlers) {
+     this.core.$element.off(event, this.handlers[event]);
+   }
+   for (unlock in Object.getOwnPropertyNames(this)) {
+     if ("function" != typeof this[unlock]) {
+       this[unlock] = null;
+     }
+   }
+ };
+ $.fn.owlCarousel.Constructor.Plugins.Animate = init;
+}(window.Zepto || window.jQuery, window, document), function($, root, o) {
+ var Plugin = function(config) {
+   this.core = config;
+   this.core.options = $.extend({}, Plugin.Defaults, this.core.options);
+   this.handlers = {
+     "translated.owl.carousel refreshed.owl.carousel" : $.proxy(function() {
+       this.autoplay();
+     }, this),
+     "play.owl.autoplay" : $.proxy(function(dataAndEvents, name, suppressEvents) {
+       this.play(name, suppressEvents);
+     }, this),
+     "stop.owl.autoplay" : $.proxy(function() {
+       this.stop();
+     }, this),
+     "mouseover.owl.autoplay" : $.proxy(function() {
+       if (this.core.settings.autoplayHoverPause) {
+         this.pause();
+       }
+     }, this),
+     "mouseleave.owl.autoplay" : $.proxy(function() {
+       if (this.core.settings.autoplayHoverPause) {
+         this.autoplay();
+       }
+     }, this)
+   };
+   this.core.$element.on(this.handlers);
+ };
+ Plugin.Defaults = {
+   autoplay : false,
+   autoplayTimeout : 5E3,
+   autoplayHoverPause : false,
+   autoplaySpeed : false
+ };
+ Plugin.prototype.autoplay = function() {
+   if (this.core.settings.autoplay && !this.core.state.videoPlay) {
+     root.clearInterval(this.interval);
+     this.interval = root.setInterval($.proxy(function() {
+       this.play();
+     }, this), this.core.settings.autoplayTimeout);
+   } else {
+     root.clearInterval(this.interval);
+   }
+ };
+ Plugin.prototype.play = function() {
+   return o.hidden === true || (this.core.state.isTouch || (this.core.state.isScrolling || (this.core.state.isSwiping || this.core.state.inMotion))) ? void 0 : this.core.settings.autoplay === false ? void root.clearInterval(this.interval) : void this.core.next(this.core.settings.autoplaySpeed);
+ };
+ Plugin.prototype.stop = function() {
+   root.clearInterval(this.interval);
+ };
+ Plugin.prototype.pause = function() {
+   root.clearInterval(this.interval);
+ };
+ Plugin.prototype.destroy = function() {
+   var event;
+   var unlock;
+   root.clearInterval(this.interval);
+   for (event in this.handlers) {
+     this.core.$element.off(event, this.handlers[event]);
+   }
+   for (unlock in Object.getOwnPropertyNames(this)) {
+     if ("function" != typeof this[unlock]) {
+       this[unlock] = null;
+     }
+   }
+ };
+ $.fn.owlCarousel.Constructor.Plugins.autoplay = Plugin;
+}(window.Zepto || window.jQuery, window, document), function($) {
+ var init = function(core) {
+   this._core = core;
+   this._initialized = false;
+   this._pages = [];
+   this._controls = {};
+   this._templates = [];
+   this.$element = this._core.$element;
+   this._overrides = {
+     next : this._core.next,
+     prev : this._core.prev,
+     to : this._core.to
+   };
+   this._handlers = {
+     "prepared.owl.carousel" : $.proxy(function(ui) {
+       if (this._core.settings.dotsData) {
+         this._templates.push($(ui.content).find("[data-dot]").andSelf("[data-dot]").attr("data-dot"));
+       }
+     }, this),
+     "add.owl.carousel" : $.proxy(function(e) {
+       if (this._core.settings.dotsData) {
+         this._templates.splice(e.position, 0, $(e.content).find("[data-dot]").andSelf("[data-dot]").attr("data-dot"));
+       }
+     }, this),
+     "remove.owl.carousel prepared.owl.carousel" : $.proxy(function(exists) {
+       if (this._core.settings.dotsData) {
+         this._templates.splice(exists.position, 1);
+       }
+     }, this),
+     "change.owl.carousel" : $.proxy(function(event) {
+       if ("position" == event.property.name && (!this._core.state.revert && (!this._core.settings.loop && this._core.settings.navRewind))) {
+         var height = this._core.current();
+         var kMinHeight = this._core.maximum();
+         var value = this._core.minimum();
+         event.data = event.property.value > kMinHeight ? height >= kMinHeight ? value : kMinHeight : event.property.value < value ? kMinHeight : event.property.value;
+       }
+     }, this),
+     "changed.owl.carousel" : $.proxy(function(pair) {
+       if ("position" == pair.property.name) {
+         this.draw();
+       }
+     }, this),
+     "refreshed.owl.carousel" : $.proxy(function() {
+       if (!this._initialized) {
+         this.initialize();
+         this._initialized = true;
+       }
+       this._core.trigger("refresh", null, "navigation");
+       this.update();
+       this.draw();
+       this._core.trigger("refreshed", null, "navigation");
+     }, this)
+   };
+   this._core.options = $.extend({}, init.Defaults, this._core.options);
+   this.$element.on(this._handlers);
+ };
+ init.Defaults = {
+   nav : false,
+   navRewind : true,
+   navText : ["prev", "next"],
+   navSpeed : false,
+   navElement : "div",
+   navContainer : false,
+   navContainerClass : "owl-nav",
+   navClass : ["owl-prev", "owl-next"],
+   slideBy : 1,
+   dotClass : "owl-dot",
+   dotsClass : "owl-dots",
+   dots : true,
+   dotsEach : false,
+   dotData : false,
+   dotsSpeed : false,
+   dotsContainer : false,
+   controlsClass : "owl-controls"
+ };
+ init.prototype.initialize = function() {
+   var container;
+   var key;
+   var settings = this._core.settings;
+   if (!settings.dotsData) {
+     this._templates = [$("<div>").addClass(settings.dotClass).append($("<span>")).prop("outerHTML")];
+   }
+   if (!(settings.navContainer && settings.dotsContainer)) {
+     this._controls.$container = $("<div>").addClass(settings.controlsClass).appendTo(this.$element);
+   }
+   this._controls.$indicators = settings.dotsContainer ? $(settings.dotsContainer) : $("<div>").hide().addClass(settings.dotsClass).appendTo(this._controls.$container);
+   this._controls.$indicators.on("click", "div", $.proxy(function(evt) {
+     var camelKey = $(evt.target).parent().is(this._controls.$indicators) ? $(evt.target).index() : $(evt.target).parent().index();
+     evt.preventDefault();
+     this.to(camelKey, settings.dotsSpeed);
+   }, this));
+   container = settings.navContainer ? $(settings.navContainer) : $("<div>").addClass(settings.navContainerClass).prependTo(this._controls.$container);
+   this._controls.$next = $("<" + settings.navElement + ">");
+   this._controls.$previous = this._controls.$next.clone();
+   this._controls.$previous.addClass(settings.navClass[0]).html(settings.navText[0]).hide().prependTo(container).on("click", $.proxy(function() {
+     this.prev(settings.navSpeed);
+   }, this));
+   this._controls.$next.addClass(settings.navClass[1]).html(settings.navText[1]).hide().appendTo(container).on("click", $.proxy(function() {
+     this.next(settings.navSpeed);
+   }, this));
+   for (key in this._overrides) {
+     this._core[key] = $.proxy(this[key], this);
+   }
+ };
+ init.prototype.destroy = function() {
+   var event;
+   var prefixed;
+   var unlock;
+   var key;
+   for (event in this._handlers) {
+     this.$element.off(event, this._handlers[event]);
+   }
+   for (prefixed in this._controls) {
+     this._controls[prefixed].remove();
+   }
+   for (key in this.overides) {
+     this._core[key] = this._overrides[key];
+   }
+   for (unlock in Object.getOwnPropertyNames(this)) {
+     if ("function" != typeof this[unlock]) {
+       this[unlock] = null;
+     }
+   }
+ };
+ init.prototype.update = function() {
+   var start;
+   var index;
+   var c;
+   var o = this._core.settings;
+   var offset = this._core.clones().length / 2;
+   var y = offset + this._core.items().length;
+   var inputLength = o.center || (o.autoWidth || o.dotData) ? 1 : o.dotsEach || o.items;
+   if ("page" !== o.slideBy && (o.slideBy = Math.min(o.slideBy, o.items)), o.dots || "page" == o.slideBy) {
+     this._pages = [];
+     start = offset;
+     index = 0;
+     c = 0;
+     for (;y > start;start++) {
+       if (index >= inputLength || 0 === index) {
+         this._pages.push({
+           start : start - offset,
+           end : start - offset + inputLength - 1
+         });
+         index = 0;
+         ++c;
+       }
+       index += this._core.mergers(this._core.relative(start));
+     }
+   }
+ };
+ init.prototype.draw = function() {
+   var scripts;
+   var udataCur;
+   var htmlString = "";
+   var options = this._core.settings;
+   var i = (this._core.$stage.children(), this._core.relative(this._core.current()));
+   if (!options.nav || (options.loop || (options.navRewind || (this._controls.$previous.toggleClass("disabled", 0 >= i), this._controls.$next.toggleClass("disabled", i >= this._core.maximum())))), this._controls.$previous.toggle(options.nav), this._controls.$next.toggle(options.nav), options.dots) {
+     if (scripts = this._pages.length - this._controls.$indicators.children().length, options.dotData && 0 !== scripts) {
+       udataCur = 0;
+       for (;udataCur < this._controls.$indicators.children().length;udataCur++) {
+         htmlString += this._templates[this._core.relative(udataCur)];
+       }
+       this._controls.$indicators.html(htmlString);
+     } else {
+       if (scripts > 0) {
+         htmlString = (new Array(scripts + 1)).join(this._templates[0]);
+         this._controls.$indicators.append(htmlString);
+       } else {
+         if (0 > scripts) {
+           this._controls.$indicators.children().slice(scripts).remove();
+         }
+       }
+     }
+     this._controls.$indicators.find(".active").removeClass("active");
+     this._controls.$indicators.children().eq($.inArray(this.current(), this._pages)).addClass("active");
+   }
+   this._controls.$indicators.toggle(options.dots);
+ };
+ init.prototype.onTrigger = function(e) {
+   var options = this._core.settings;
+   e.page = {
+     index : $.inArray(this.current(), this._pages),
+     count : this._pages.length,
+     size : options && (options.center || (options.autoWidth || options.dotData) ? 1 : options.dotsEach || options.items)
+   };
+ };
+ init.prototype.current = function() {
+   var LEVEL_LIST = this._core.relative(this._core.current());
+   return $.grep(this._pages, function(o) {
+     return o.start <= LEVEL_LIST && o.end >= LEVEL_LIST;
+   }).pop();
+ };
+ init.prototype.getPosition = function(recurring) {
+   var a;
+   var b;
+   var settings = this._core.settings;
+   return "page" == settings.slideBy ? (a = $.inArray(this.current(), this._pages), b = this._pages.length, recurring ? ++a : --a, a = this._pages[(a % b + b) % b].start) : (a = this._core.relative(this._core.current()), b = this._core.items().length, recurring ? a += settings.slideBy : a -= settings.slideBy), a;
+ };
+ init.prototype.next = function(shallow) {
+   $.proxy(this._overrides.to, this._core)(this.getPosition(true), shallow);
+ };
+ init.prototype.prev = function(shallow) {
+   $.proxy(this._overrides.to, this._core)(this.getPosition(false), shallow);
+ };
+ init.prototype.to = function(value, attr, dataAndEvents) {
+   var range;
+   if (dataAndEvents) {
+     $.proxy(this._overrides.to, this._core)(value, attr);
+   } else {
+     range = this._pages.length;
+     $.proxy(this._overrides.to, this._core)(this._pages[(value % range + range) % range].start, attr);
+   }
+ };
+ $.fn.owlCarousel.Constructor.Plugins.Navigation = init;
+}(window.Zepto || window.jQuery, window, document), function($, win) {
+ var handler = function(token) {
+   this._core = token;
+   this._hashes = {};
+   this.$element = this._core.$element;
+   this._handlers = {
+     "initialized.owl.carousel" : $.proxy(function() {
+       if ("URLHash" == this._core.settings.startPosition) {
+         $(win).trigger("hashchange.owl.navigation");
+       }
+     }, this),
+     "prepared.owl.carousel" : $.proxy(function(data) {
+       var id = $(data.content).find("[data-hash]").andSelf("[data-hash]").attr("data-hash");
+       this._hashes[id] = data.content;
+     }, this)
+   };
+   this._core.options = $.extend({}, handler.Defaults, this._core.options);
+   this.$element.on(this._handlers);
+   $(win).on("hashchange.owl.navigation", $.proxy(function() {
+     var i = win.location.hash.substring(1);
+     var pos = this._core.$stage.children();
+     var camelKey = this._hashes[i] && pos.index(this._hashes[i]) || 0;
+     return i ? void this._core.to(camelKey, false, true) : false;
+   }, this));
+ };
+ handler.Defaults = {
+   URLhashListener : false
+ };
+ handler.prototype.destroy = function() {
+   var event;
+   var unlock;
+   $(win).off("hashchange.owl.navigation");
+   for (event in this._handlers) {
+     this._core.$element.off(event, this._handlers[event]);
+   }
+   for (unlock in Object.getOwnPropertyNames(this)) {
+     if ("function" != typeof this[unlock]) {
+       this[unlock] = null;
+     }
+   }
+ };
+ $.fn.owlCarousel.Constructor.Plugins.Hash = handler;
+}(window.Zepto || window.jQuery, window, document);
